@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能咖啡机操作界面</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- 自定义 Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        coffee: {
+                            dark: '#1A1A1A',
+                            medium: '#2D2D2D',
+                            light: '#4A4A4A',
+                            accent: '#8B5A2B',
+                            highlight: '#D2B48C'
+                        }
+                    },
+                    fontSize: {
+                        'xs-custom': '8px',
+                        'sm-custom': '10px',
+                        'base-custom': '12px'
+                    },
+                    spacing: {
+                        '1px': '1px',
+                        '2px': '2px',
+                        '3px': '3px'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .coffee-shadow {
+                box-shadow: 0 0 3px rgba(210, 180, 140, 0.3);
+            }
+            .btn-active {
+                @apply bg-coffee-accent text-coffee-dark border-coffee-highlight;
+            }
+            .slider-thumb {
+                @apply appearance-none w-2 h-2 rounded-full bg-coffee-highlight border border-coffee-accent;
+            }
+        }
+        
+        /* 自定义滑块样式 */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #4A4A4A;
+            height: 2px;
+            border-radius: 1px;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #D2B48C;
+            border: 1px solid #8B5A2B;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<!-- 主体容器 - 固定 200x50 尺寸，深色背景 -->
+<body class="bg-coffee-dark flex items-center justify-center min-h-screen">
+    <div class="w-[200px] h-[50px] bg-coffee-dark rounded-md coffee-shadow overflow-hidden relative border border-coffee-light">
+        <!-- 页面状态控制器 (JS 控制显示不同模块) -->
+        <div id="coffeeApp" class="w-full h-full">
+            <!-- 1. 饮品选择页面 (默认显示) -->
+            <div id="drinkSelection" class="w-full h-full flex flex-col">
+                <div class="flex justify-between items-center px-1 py-0.5 h-1/3">
+                    <span class="text-coffee-highlight text-xs-custom font-medium">选择饮品</span>
+                    <i class="fa-solid fa-mug-hot text-coffee-accent text-xs-custom"></i>
+                </div>
+                
+                <!-- 饮品选择区 (带图片) -->
+                <div class="flex justify-around items-center h-2/3 px-1">
+                    <!-- 浓缩咖啡 -->
+                    <div class="drink-option w-16 h-10 flex flex-col items-center justify-center rounded-md hover:bg-coffee-medium cursor-pointer transition-colors" data-drink="espresso">
+                        <img src="https://picsum.photos/id/431/32/20" alt="浓缩咖啡" class="w-8 h-5 object-cover rounded-sm mb-0.5">
+                        <span class="text-white text-xs-custom">浓缩</span>
+                    </div>
+                    
+                    <!-- 拿铁 -->
+                    <div class="drink-option w-16 h-10 flex flex-col items-center justify-center rounded-md hover:bg-coffee-medium cursor-pointer transition-colors" data-drink="latte">
+                        <img src="https://picsum.photos/id/766/32/20" alt="拿铁" class="w-8 h-5 object-cover rounded-sm mb-0.5">
+                        <span class="text-white text-xs-custom">拿铁</span>
+                    </div>
+                    
+                    <!-- 卡布奇诺 -->
+                    <div class="drink-option w-16 h-10 flex flex-col items-center justify-center rounded-md hover:bg-coffee-medium cursor-pointer transition-colors" data-drink="cappuccino">
+                        <img src="https://picsum.photos/id/614/32/20" alt="卡布奇诺" class="w-8 h-5 object-cover rounded-sm mb-0.5">
+                        <span class="text-white text-xs-custom">卡布</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 咖啡设置页面 (选择饮品后显示) -->
+            <div id="coffeeSettings" class="w-full h-full flex flex-col hidden">
+                <!-- 设置标题栏 -->
+                <div class="flex justify-between items-center px-1 py-0.5 h-1/5">
+                    <span id="selectedDrinkName" class="text-coffee-highlight text-xs-custom font-medium">浓缩咖啡设置</span>
+                    <i class="fa-solid fa-gear text-coffee-accent text-xs-custom"></i>
+                </div>
+                
+                <!-- 设置选项区 -->
+                <div class="flex justify-around items-center h-3/5 px-1">
+                    <!-- 研磨粗细 -->
+                    <div class="flex flex-col items-center w-12">
+                        <span class="text-white text-xs-custom mb-1">研磨</span>
+                        <input type="range" id="grindLevel" min="1" max="10" value="5" class="w-10">
+                    </div>
+                    
+                    <!-- 萃取杯数 -->
+                    <div class="flex flex-col items-center w-12">
+                        <span class="text-white text-xs-custom mb-1">杯数</span>
+                        <div class="flex gap-1">
+                            <button id="singleCup" class="w-4 h-4 rounded-full border border-coffee-light text-white text-xs-custom flex items-center justify-center btn-active">1</button>
+                            <button id="doubleCup" class="w-4 h-4 rounded-full border border-coffee-light text-white text-xs-custom flex items-center justify-center">2</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 打泡时间 -->
+                    <div class="flex flex-col items-center w-12">
+                        <span class="text-white text-xs-custom mb-1">打泡</span>
+                        <input type="range" id="foamTime" min="0" max="30" value="10" class="w-10">
+                    </div>
+                </div>
+                
+                <!-- 操作按钮区 -->
+                <div class="flex justify-between items-center px-2 h-1/5">
+                    <button id="backBtn" class="text-xs-custom text-coffee-highlight bg-coffee-medium px-2 py-0.5 rounded-md">返回</button>
+                    <button id="startBtn" class="text-xs-custom text-coffee-dark bg-coffee-accent px-2 py-0.5 rounded-md">开始制作</button>
+                </div>
+            </div>
+
+            <!-- 3. 制作中页面 -->
+            <div id="makingCoffee" class="w-full h-full flex flex-col items-center justify-center hidden">
+                <i class="fa-solid fa-circle-notch fa-spin text-coffee-highlight text-sm-custom mb-1"></i>
+                <span class="text-white text-xs-custom">制作中...</span>
+                <div class="w-4/5 h-1 bg-coffee-light rounded-full mt-1 overflow-hidden">
+                    <div id="progressBar" class="h-full bg-coffee-accent w-0 transition-all duration-100"></div>
+                </div>
+            </div>
+
+            <!-- 4. 完成页面 -->
+            <div id="coffeeDone" class="w-full h-full flex flex-col items-center justify-center hidden">
+                <i class="fa-solid fa-check-circle text-coffee-highlight text-sm-custom mb-1"></i>
+                <span class="text-white text-xs-custom">制作完成！</span>
+                <button id="resetBtn" class="mt-1 text-xs-custom text-coffee-dark bg-coffee-accent px-2 py-0.5 rounded-md">返回</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript 交互逻辑 -->
+    <script>
+        // 获取DOM元素
+        const drinkOptions = document.querySelectorAll('.drink-option');
+        const drinkSelection = document.getElementById('drinkSelection');
+        const coffeeSettings = document.getElementById('coffeeSettings');
+        const makingCoffee = document.getElementById('makingCoffee');
+        const coffeeDone = document.getElementById('coffeeDone');
+        const selectedDrinkName = document.getElementById('selectedDrinkName');
+        const singleCup = document.getElementById('singleCup');
+        const doubleCup = document.getElementById('doubleCup');
+        const backBtn = document.getElementById('backBtn');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const progressBar = document.getElementById('progressBar');
+        
+        let selectedDrink = 'espresso'; // 默认选中浓缩咖啡
+        let cupCount = 1; // 默认单杯
+        let grindLevel = 5; // 默认研磨粗细
+        let foamTime = 10; // 默认打泡时间
+
+        // 饮品选择事件
+        drinkOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                // 移除所有选中状态
+                drinkOptions.forEach(opt => opt.classList.remove('bg-coffee-medium'));
+                // 添加当前选中状态
+                option.classList.add('bg-coffee-medium');
+                // 保存选中的饮品
+                selectedDrink = option.dataset.drink;
+                
+                // 更新设置页面标题
+                const drinkNames = {
+                    espresso: '浓缩咖啡设置',
+                    latte: '拿铁设置',
+                    cappuccino: '卡布奇诺设置'
+                };
+                selectedDrinkName.textContent = drinkNames[selectedDrink] || '咖啡设置';
+                
+                // 切换到设置页面
+                drinkSelection.classList.add('hidden');
+                coffeeSettings.classList.remove('hidden');
+            });
+        });
+
+        // 杯数选择
+        singleCup.addEventListener('click', () => {
+            singleCup.classList.add('btn-active');
+            doubleCup.classList.remove('btn-active');
+            cupCount = 1;
+        });
+
+        doubleCup.addEventListener('click', () => {
+            doubleCup.classList.add('btn-active');
+            singleCup.classList.remove('btn-active');
+            cupCount = 2;
+        });
+
+        // 研磨粗细和打泡时间监听
+        document.getElementById('grindLevel').addEventListener('input', (e) => {
+            grindLevel = e.target.value;
+        });
+
+        document.getElementById('foamTime').addEventListener('input', (e) => {
+            foamTime = e.target.value;
+        });
+
+        // 返回按钮
+        backBtn.addEventListener('click', () => {
+            coffeeSettings.classList.add('hidden');
+            drinkSelection.classList.remove('hidden');
+        });
+
+        // 开始制作按钮
+        startBtn.addEventListener('click', () => {
+            // 打印调试信息 (实际项目中可发送到咖啡机)
+            console.log({
+                饮品: selectedDrink,
+                研磨粗细: grindLevel,
+                萃取杯数: cupCount,
+                打泡时间: foamTime + '秒'
+            });
+
+            // 切换到制作中页面
+            coffeeSettings.classList.add('hidden');
+            makingCoffee.classList.remove('hidden');
+            
+            // 模拟制作进度
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 5;
+                progressBar.style.width = `${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                    // 制作完成，切换到完成页面
+                    makingCoffee.classList.add('hidden');
+                    coffeeDone.classList.remove('hidden');
+                }
+            }, 200);
+        });
+
+        // 重置按钮 (返回初始页面)
+        resetBtn.addEventListener('click', () => {
+            coffeeDone.classList.add('hidden');
+            drinkSelection.classList.remove('hidden');
+            progressBar.style.width = '0%'; // 重置进度条
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能咖啡机 UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* 自定义滚动条隐藏 */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* 模拟超宽屏比例 (4:1) */
+        #app-container {
+            aspect-ratio: 4/1;
+            max-width: 1000px; /* 限制最大宽度以便在电脑查看 */
+            width: 100%;
+        }
+
+        /* 自定义滑块样式 */
+        input[type=range] {
+            -webkit-appearance: none; 
+            background: transparent; 
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #d97706; /* amber-600 */
+            cursor: pointer;
+            margin-top: -6px; 
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #4b5563;
+            border-radius: 2px;
+        }
+        
+        /* 动画关键帧 */
+        @keyframes loading-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .spin-active {
+            animation: loading-spin 1.5s linear infinite;
+            border-top-color: #d97706 !important; /* Amber color */
+            border-right-color: #d97706 !important;
+        }
+    </style>
+</head>
+<body class="bg-black flex items-center justify-center min-h-screen p-4 text-white font-sans selection:bg-amber-600">
+
+    <div id="app-container" class="relative bg-gray-900 overflow-hidden shadow-2xl border border-gray-800 rounded-xl">
+        
+        <div id="standby-screen" class="absolute inset-0 z-50 cursor-pointer transition-opacity duration-700 ease-in-out">
+            <img src="https://images.unsplash.com/photo-1447933601400-b8a90150d90c?q=80&w=2000&auto=format&fit=crop" 
+                 class="w-full h-full object-cover opacity-60" alt="Screen Saver">
+            <div class="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm">
+                <h1 class="text-4xl font-light tracking-[0.2em] mb-2">INTELLIGENT BREW</h1>
+                <p class="text-sm text-gray-300 animate-pulse">轻触屏幕唤醒</p>
+            </div>
+        </div>
+
+        <div id="menu-screen" class="absolute inset-0 z-40 bg-gray-900 flex flex-col transition-transform duration-500 translate-x-full">
+            <div class="px-6 py-3 border-b border-gray-800 flex justify-between items-center bg-gray-900/90 z-10">
+                <h2 class="text-lg text-amber-500 font-bold">请选择您的饮品</h2>
+                <span class="text-xs text-gray-500"><i class="fa-solid fa-arrows-left-right mr-1"></i> 左右滑动</span>
+            </div>
+            
+            <div class="flex-1 flex items-center overflow-x-auto hide-scrollbar px-6 space-x-6">
+                <div onclick="selectDrink('美式咖啡')" class="flex-shrink-0 w-48 group cursor-pointer text-center">
+                    <div class="relative w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-transparent group-hover:border-amber-600 transition-all mb-3">
+                        <img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=300&q=80" class="w-full h-full object-cover">
+                    </div>
+                    <h3 class="text-lg font-medium group-hover:text-amber-500">美式咖啡</h3>
+                </div>
+                <div onclick="selectDrink('拿铁')" class="flex-shrink-0 w-48 group cursor-pointer text-center">
+                    <div class="relative w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-transparent group-hover:border-amber-600 transition-all mb-3">
+                        <img src="https://images.unsplash.com/photo-1570968992193-96a29274ebc9?auto=format&fit=crop&w=300&q=80" class="w-full h-full object-cover">
+                    </div>
+                    <h3 class="text-lg font-medium group-hover:text-amber-500">拿铁</h3>
+                </div>
+                <div onclick="selectDrink('卡布奇诺')" class="flex-shrink-0 w-48 group cursor-pointer text-center">
+                    <div class="relative w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-transparent group-hover:border-amber-600 transition-all mb-3">
+                        <img src="https://images.unsplash.com/photo-1534778101976-62847782c213?auto=format&fit=crop&w=300&q=80" class="w-full h-full object-cover">
+                    </div>
+                    <h3 class="text-lg font-medium group-hover:text-amber-500">卡布奇诺</h3>
+                </div>
+                <div onclick="selectDrink('意式浓缩')" class="flex-shrink-0 w-48 group cursor-pointer text-center">
+                    <div class="relative w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-transparent group-hover:border-amber-600 transition-all mb-3">
+                        <img src="https://images.unsplash.com/photo-1610889556283-1f1997387ad4?auto=format&fit=crop&w=300&q=80" class="w-full h-full object-cover">
+                    </div>
+                    <h3 class="text-lg font-medium group-hover:text-amber-500">意式浓缩</h3>
+                </div>
+            </div>
+        </div>
+
+        <div id="process-screen" class="absolute inset-0 z-30 bg-gray-900 flex flex-col transition-transform duration-500 translate-x-full">
+            <div class="px-6 py-2 border-b border-gray-800 flex justify-between items-center bg-gray-800">
+                <button onclick="goBack()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-arrow-left"></i> 返回</button>
+                <h2 id="selected-drink-name" class="text-lg font-bold text-amber-500">制作中</h2>
+                <div class="w-16"></div> </div>
+
+            <div class="flex-1 grid grid-cols-3 gap-1 relative">
+                
+                <div class="relative flex flex-col items-center justify-start pt-6 border-r border-gray-800 group">
+                    <div id="circle-grind" onclick="startProcess('grind')" class="w-24 h-24 rounded-full border-[6px] border-gray-700 flex items-center justify-center cursor-pointer hover:border-gray-500 transition-colors relative mb-2">
+                        <div class="text-center">
+                            <i class="fa-solid fa-gear text-2xl mb-1 text-gray-300"></i>
+                            <div class="text-xs text-gray-400 font-bold">研磨</div>
+                        </div>
+                        <div id="status-grind" class="absolute -top-8 bg-green-600 text-white text-[10px] px-2 py-1 rounded opacity-0 transition-opacity">完成</div>
+                    </div>
+
+                    <button onclick="toggleSettings('grind-settings')" class="px-3 py-1 bg-gray-800 rounded-full text-xs text-gray-300 hover:bg-gray-700 border border-gray-700 mb-2">
+                        设置粗细 <i class="fa-solid fa-chevron-down ml-1"></i>
+                    </button>
+
+                    <div id="grind-settings" class="hidden w-full px-6 py-2 bg-gray-800/50 absolute bottom-0 left-0 backdrop-blur-md border-t border-gray-700 h-24 flex-col justify-center">
+                        <div class="flex justify-between text-[10px] text-gray-400 mb-1">
+                            <span>细</span>
+                            <span>粗</span>
+                        </div>
+                        <input type="range" min="1" max="10" value="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+
+                <div class="relative flex flex-col items-center justify-start pt-6 border-r border-gray-800">
+                     <div id="circle-extract" onclick="startProcess('extract')" class="w-24 h-24 rounded-full border-[6px] border-gray-700 flex items-center justify-center cursor-pointer hover:border-gray-500 transition-colors relative mb-2">
+                        <div class="text-center">
+                            <i class="fa-solid fa-droplet text-2xl mb-1 text-gray-300"></i>
+                            <div class="text-xs text-gray-400 font-bold">萃取</div>
+                        </div>
+                        <div id="status-extract" class="absolute -top-8 bg-green-600 text-white text-[10px] px-2 py-1 rounded opacity-0 transition-opacity">完成</div>
+                    </div>
+
+                    <button onclick="toggleSettings('extract-settings')" class="px-3 py-1 bg-gray-800 rounded-full text-xs text-gray-300 hover:bg-gray-700 border border-gray-700 mb-2">
+                        杯量/水温 <i class="fa-solid fa-chevron-down ml-1"></i>
+                    </button>
+
+                    <div id="extract-settings" class="hidden w-full px-4 py-2 bg-gray-800/50 absolute bottom-0 left-0 backdrop-blur-md border-t border-gray-700 h-24 flex-col justify-center space-y-2">
+                        <div class="flex space-x-2">
+                            <button class="flex-1 py-1 bg-amber-600 text-white text-[10px] rounded hover:opacity-90 active:scale-95 transition-transform">单杯</button>
+                            <button class="flex-1 py-1 bg-gray-700 text-gray-300 text-[10px] rounded hover:bg-gray-600">双杯</button>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="flex-1 py-1 bg-gray-700 text-gray-300 text-[10px] rounded hover:bg-gray-600">常温</button>
+                            <button class="flex-1 py-1 bg-red-900/80 text-red-200 text-[10px] rounded border border-red-800">热水</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative flex flex-col items-center justify-start pt-6">
+                     <div id="circle-froth" onclick="startProcess('froth')" class="w-24 h-24 rounded-full border-[6px] border-gray-700 flex items-center justify-center cursor-pointer hover:border-gray-500 transition-colors relative mb-2">
+                        <div class="text-center">
+                            <i class="fa-solid fa-wind text-2xl mb-1 text-gray-300"></i>
+                            <div class="text-xs text-gray-400 font-bold">打泡</div>
+                        </div>
+                        <div id="status-froth" class="absolute -top-8 bg-green-600 text-white text-[10px] px-2 py-1 rounded opacity-0 transition-opacity">完成</div>
+                    </div>
+
+                    <button onclick="toggleSettings('froth-settings')" class="px-3 py-1 bg-gray-800 rounded-full text-xs text-gray-300 hover:bg-gray-700 border border-gray-700 mb-2">
+                        温度/丰度 <i class="fa-solid fa-chevron-down ml-1"></i>
+                    </button>
+
+                    <div id="froth-settings" class="hidden w-full px-6 py-2 bg-gray-800/50 absolute bottom-0 left-0 backdrop-blur-md border-t border-gray-700 h-24 flex-col justify-center space-y-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-[10px] text-gray-400 w-6">温度</span>
+                            <input type="range" class="flex-1 h-1">
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-[10px] text-gray-400 w-6">丰度</span>
+                            <input type="range" class="flex-1 h-1">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 页面元素获取
+        const standbyScreen = document.getElementById('standby-screen');
+        const menuScreen = document.getElementById('menu-screen');
+        const processScreen = document.getElementById('process-screen');
+        const appContainer = document.getElementById('app-container');
+
+        // 状态变量
+        let currentSettingPanel = null;
+
+        // 1. 唤醒机器
+        standbyScreen.addEventListener('click', () => {
+            standbyScreen.style.opacity = '0';
+            setTimeout(() => {
+                standbyScreen.style.display = 'none';
+                menuScreen.style.transform = 'translateX(0)';
+            }, 500);
+        });
+
+        // 2. 选择饮品
+        function selectDrink(name) {
+            document.getElementById('selected-drink-name').innerText = name;
+            menuScreen.style.transform = 'translateX(-100%)';
+            processScreen.style.transform = 'translateX(0)';
+            
+            // 重置所有状态
+            resetCircles();
+        }
+
+        // 3. 返回菜单
+        function goBack() {
+            processScreen.style.transform = 'translateX(100%)';
+            menuScreen.style.transform = 'translateX(0)';
+            closeAllSettings();
+        }
+
+        // 4. 显示/隐藏设置面板
+        function toggleSettings(panelId) {
+            const panel = document.getElementById(panelId);
+            
+            // 如果点击的是当前已打开的，则关闭它
+            if (currentSettingPanel === panelId && !panel.classList.contains('hidden')) {
+                panel.classList.add('hidden');
+                currentSettingPanel = null;
+                return;
+            }
+
+            // 关闭其他所有面板
+            closeAllSettings();
+
+            // 打开当前面板
+            panel.classList.remove('hidden');
+            currentSettingPanel = panelId;
+        }
+
+        function closeAllSettings() {
+            ['grind-settings', 'extract-settings', 'froth-settings'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            currentSettingPanel = null;
+        }
+
+        // 5. 制作过程逻辑
+        function startProcess(type) {
+            const circle = document.getElementById(`circle-${type}`);
+            const statusLabel = document.getElementById(`status-${type}`);
+            
+            // 如果已经完成，不再响应
+            if (circle.classList.contains('border-green-500')) {
+                // 可选：重置
+                circle.classList.remove('border-green-500');
+                circle.classList.add('border-gray-700');
+                statusLabel.style.opacity = '0';
+                return;
+            }
+
+            // 防止重复点击正在运行的
+            if (circle.classList.contains('spin-active')) return;
+
+            // 开始动画
+            circle.classList.remove('border-gray-700');
+            circle.classList.add('spin-active');
+            
+            // 模拟制作时间 (2秒)
+            setTimeout(() => {
+                // 停止动画
+                circle.classList.remove('spin-active');
+                
+                // 设置完成状态
+                circle.classList.add('border-green-500'); // 绿色边框
+                
+                // 显示“完成”提示
+                statusLabel.style.opacity = '1';
+
+            }, 2000);
+        }
+
+        function resetCircles() {
+            ['grind', 'extract', 'froth'].forEach(type => {
+                const circle = document.getElementById(`circle-${type}`);
+                const statusLabel = document.getElementById(`status-${type}`);
+                
+                circle.className = "w-24 h-24 rounded-full border-[6px] border-gray-700 flex items-center justify-center cursor-pointer hover:border-gray-500 transition-colors relative mb-2";
+                statusLabel.style.opacity = '0';
+            });
+            closeAllSettings();
+        }
+
+    </script>
+</body>
+</html>

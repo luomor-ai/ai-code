@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+    :root {
+        --bg-dark: #1a1b1e;
+        --panel-bg: #252629;
+        --text-grey: #666;
+        --active-orange: #ffb347;
+        --active-glow: rgba(255, 179, 71, 0.6);
+        --text-blue: #4fc3f7;
+        --text-blue-glow: rgba(79, 195, 247, 0.6);
+    }
+
+    body {
+        background-color: #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        color: white;
+    }
+
+    /* 主容器：保持 4:1 的比例 (例如 800x200)，方便缩放 */
+    .smartbrew-ui {
+        width: 800px;
+        height: 200px;
+        background: linear-gradient(to bottom, #2c2d30, #1a1b1e);
+        border-radius: 10px;
+        display: flex;
+        padding: 10px 20px;
+        box-sizing: border-box;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    /* Logo */
+    .logo {
+        position: absolute;
+        top: 10px;
+        left: 15px;
+        font-size: 14px;
+        color: #888;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    /* 区域 1: 饮品选择 (左侧) */
+    .section-drinks {
+        flex: 1.2;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border-right: 1px solid #333;
+        padding-right: 10px;
+    }
+
+    .drink-carousel {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .drink-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        opacity: 0.4;
+        transition: 0.3s;
+        transform: scale(0.8);
+    }
+
+    .drink-item.active {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+    .drink-item.active svg path {
+        stroke: var(--active-orange);
+        filter: drop-shadow(0 0 5px var(--active-glow));
+    }
+    
+    .drink-item.active .drink-label {
+        color: var(--active-orange);
+        text-shadow: 0 0 10px var(--active-glow);
+    }
+
+    .drink-icon {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 8px;
+    }
+    
+    .drink-icon path {
+        fill: none;
+        stroke: #888;
+        stroke-width: 2;
+        stroke-linecap: round;
+    }
+
+    .drink-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 5px;
+    }
+
+    .nav-arrows {
+        margin-top: 10px;
+        display: flex;
+        gap: 15px;
+    }
+    .arrow {
+        color: var(--active-orange);
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    /* 区域 2: 设置面板 (中间) */
+    .section-settings {
+        flex: 2;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0 10px;
+    }
+
+    .panel {
+        background: var(--panel-bg);
+        border: 1px solid #333;
+        border-radius: 8px;
+        height: 80%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px;
+        box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.05);
+        box-sizing: border-box;
+    }
+
+    .panel-title {
+        font-size: 10px;
+        color: #888;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+    }
+
+    /* 研磨设置 */
+    .grind-panel { width: 80px; }
+    .grind-container {
+        display: flex;
+        height: 100%;
+        align-items: center;
+        gap: 5px;
+    }
+    .grind-labels {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 70%;
+        font-size: 8px;
+        color: #666;
+    }
+    .grind-slider {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+    .bar {
+        width: 20px;
+        height: 4px;
+        background: #444;
+        border-radius: 2px;
+    }
+    .bar.active { background: var(--active-orange); box-shadow: 0 0 5px var(--active-glow); }
+    /* 模拟滑块手柄 */
+    .slider-handle {
+        position: absolute;
+        right: -5px;
+        top: 50%;
+        width: 10px;
+        height: 10px;
+        background: #ccc;
+        border-radius: 50%;
+        box-shadow: 0 2px 5px black;
+    }
+
+    /* 模式设置 */
+    .mode-panel { width: 80px; }
+    .mode-btn {
+        width: 40px;
+        height: 35px;
+        border-radius: 5px;
+        border: 1px solid #444;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 5px;
+        cursor: pointer;
+    }
+    .mode-btn.active {
+        border-color: var(--active-orange);
+        box-shadow: inset 0 0 10px rgba(255, 179, 71, 0.2), 0 0 5px var(--active-glow);
+    }
+    .mode-btn svg path { stroke: #888; fill: none; stroke-width: 2; }
+    .mode-btn.active svg path { stroke: var(--active-orange); }
+
+    /* 时间设置 */
+    .time-panel { width: 90px; }
+    .time-display {
+        font-family: 'Courier New', monospace;
+        font-size: 18px;
+        color: var(--text-blue);
+        text-shadow: 0 0 8px var(--text-blue-glow);
+        margin: 5px 0;
+    }
+    .time-controls {
+        display: flex;
+        gap: 5px;
+    }
+    .btn-sq {
+        width: 25px;
+        height: 25px;
+        background: #333;
+        border: 1px solid #444;
+        border-radius: 4px;
+        color: var(--text-blue);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    /* 装饰线 */
+    .divider-glow {
+        width: 2px;
+        height: 60%;
+        background: #ffb347;
+        box-shadow: 0 0 10px 2px var(--active-glow);
+        margin: 0 10px;
+        opacity: 0.8;
+        border-radius: 2px;
+    }
+
+    /* 区域 3: 制作按钮 (右侧) */
+    .section-action {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+    }
+
+    .brew-btn-outer {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: linear-gradient(145deg, #222, #111);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 
+            -5px -5px 10px rgba(255,255,255,0.05),
+            5px 5px 15px rgba(0,0,0,0.8);
+        position: relative;
+    }
+
+    .brew-btn-inner {
+        width: 75px;
+        height: 75px;
+        border-radius: 50%;
+        border: 2px solid var(--active-orange);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: inset 0 0 15px var(--active-glow), 0 0 10px var(--active-glow);
+        cursor: pointer;
+    }
+
+    .brew-text {
+        font-size: 16px;
+        color: #eee;
+        letter-spacing: 1px;
+    }
+
+    /* 进度条 */
+    .progress-container {
+        margin-top: 15px;
+        width: 70px;
+        text-align: center;
+    }
+    .progress-bar-bg {
+        width: 100%;
+        height: 6px;
+        background: #333;
+        border-radius: 3px;
+        overflow: hidden;
+        display: flex;
+        gap: 2px;
+        padding: 1px;
+    }
+    .p-block {
+        flex: 1;
+        background: #555;
+        border-radius: 1px;
+    }
+    .p-block.filled {
+        background: var(--active-orange);
+        box-shadow: 0 0 5px var(--active-glow);
+    }
+    .ready-text {
+        font-size: 8px;
+        color: #888;
+        margin-top: 3px;
+    }
+
+    /* --- 针对 200x50 尺寸的缩放类 --- */
+    /* 如果你需要在这个尺寸下展示，可以去掉注释，或者在父容器包裹这一层 */
+    /* .tiny-screen-mode {
+        transform: scale(0.25); 
+        transform-origin: top left;
+    }
+    */
+</style>
+</head>
+<body>
+
+<div class="smartbrew-ui">
+    <div class="logo">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2">
+            <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+            <path d="M6 1v3"></path>
+            <path d="M10 1v3"></path>
+            <path d="M14 1v3"></path>
+        </svg>
+        SmartBrew
+    </div>
+
+    <div class="section-drinks">
+        <div class="drink-carousel">
+            <div class="drink-item">
+                <svg class="drink-icon" viewBox="0 0 24 24">
+                    <path d="M4 6h16v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6z"></path>
+                    <path d="M4 9h16"></path>
+                </svg>
+                <div class="drink-label">Americano</div>
+            </div>
+            
+            <div class="drink-item active">
+                <svg class="drink-icon" viewBox="0 0 24 24">
+                    <path d="M5 9h14v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9z"></path>
+                    <path d="M19 9h1a3 3 0 0 1 0 6h-1"></path>
+                    <path d="M5 14h14" stroke-opacity="0.5"></path>
+                </svg>
+                <div class="drink-label">Espresso</div>
+            </div>
+
+            <div class="drink-item">
+                <svg class="drink-icon" viewBox="0 0 24 24">
+                    <path d="M6 4h12l-2 16H8L6 4z"></path>
+                    <path d="M18 8h3a2 2 0 0 1 0 4h-2"></path>
+                    <path d="M7 8h10"></path>
+                </svg>
+                <div class="drink-label">Latte</div>
+            </div>
+        </div>
+        <div class="nav-arrows">
+            <div class="arrow">&lt;</div>
+            <div class="arrow">&gt;</div>
+        </div>
+    </div>
+
+    <div class="section-settings">
+        <div class="panel grind-panel">
+            <div class="panel-title">GRIND</div>
+            <div class="grind-container">
+                <div class="grind-labels">
+                    <span>CA</span>
+                    <span>FINE</span>
+                </div>
+                <div class="grind-slider">
+                    <div class="bar" style="width: 22px; opacity: 0.3"></div>
+                    <div class="bar" style="width: 20px; opacity: 0.4"></div>
+                    <div class="bar" style="width: 18px; opacity: 0.5"></div>
+                    <div class="bar active" style="width: 16px;"></div> <div class="bar active" style="width: 14px;"></div>
+                    <div class="bar active" style="width: 12px;"></div>
+                    <div class="bar active" style="width: 10px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel mode-panel">
+            <div class="panel-title">MODE</div>
+            <div class="mode-btn active">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path d="M5 9h14v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9z"></path>
+                </svg>
+            </div>
+            <div class="mode-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path d="M2 9h10v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9z"></path>
+                    <path d="M14 9h8v7a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V9z"></path>
+                </svg>
+            </div>
+        </div>
+
+        <div class="panel time-panel">
+            <div class="panel-title">TIME</div>
+            <div class="time-display">00:30s</div>
+            <div class="time-controls">
+                <div class="btn-sq">-</div>
+                <div class="btn-sq">+</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="divider-glow"></div>
+
+    <div class="section-action">
+        <div class="brew-btn-outer">
+            <div class="brew-btn-inner">
+                <span class="brew-text">BREW</span>
+            </div>
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar-bg">
+                <div class="p-block filled"></div>
+                <div class="p-block filled"></div>
+                <div class="p-block filled"></div>
+                <div class="p-block filled"></div>
+                <div class="p-block filled"></div>
+                <div class="p-block"></div>
+                <div class="p-block"></div>
+            </div>
+            <div class="ready-text">READY</div>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

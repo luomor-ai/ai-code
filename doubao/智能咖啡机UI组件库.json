@@ -1,0 +1,155 @@
+{
+  "name": "智能咖啡机UI-组件库",
+  "version": "1.0.0",
+  "author": "UI设计框架",
+  "figmaVersion": "100.0",
+  "styles": {
+    "color": [
+      {"name": "主色-咖啡棕", "value": "#8B5A2B", "type": "fill/stroke"},
+      {"name": "辅助色-奶咖白", "value": "#F5F0EB", "type": "fill"},
+      {"name": "点缀色-焦糖橙", "value": "#E67E22", "type": "fill/stroke"},
+      {"name": "点缀色-金属灰", "value": "#999999", "type": "fill/stroke"},
+      {"name": "中性色-深灰", "value": "#333333", "type": "fill"},
+      {"name": "中性色-浅灰", "value": "#EEEEEE", "type": "fill/stroke"},
+      {"name": "中性色-纯白", "value": "#FFFFFF", "type": "fill"},
+      {"name": "状态色-绿色", "value": "#67C23A", "type": "fill"},
+      {"name": "状态色-红色", "value": "#F56C6C", "type": "fill"}
+    ],
+    "text": [
+      {"name": "标题-大", "font": "思源黑体", "weight": "Bold", "size": 20, "color": "#8B5A2B", "lineHeight": 24, "letterSpacing": 0.5},
+      {"name": "标题-小", "font": "思源黑体", "weight": "Bold", "size": 18, "color": "#8B5A2B", "lineHeight": 22, "letterSpacing": 0.5},
+      {"name": "正文-常规", "font": "思源黑体", "weight": "Regular", "size": 16, "color": "#333333", "lineHeight": 19, "letterSpacing": 0.5},
+      {"name": "正文-小", "font": "思源黑体", "weight": "Regular", "size": 14, "color": "#333333", "lineHeight": 17, "letterSpacing": 0.5},
+      {"name": "次要文字", "font": "思源黑体", "weight": "Light", "size": 12, "color": "#999999", "lineHeight": 14, "letterSpacing": 0.5},
+      {"name": "数据数字", "font": "思源黑体", "weight": "Medium", "size": 24, "color": "#8B5A2B", "lineHeight": 29, "letterSpacing": 0.5},
+      {"name": "数据数字-小", "font": "思源黑体", "weight": "Medium", "size": 18, "color": "#8B5A2B", "lineHeight": 22, "letterSpacing": 0.5}
+    ],
+    "effect": [
+      {"name": "卡片轻微阴影", "type": "dropShadow", "offsetX": 0, "offsetY": 2, "blur": 8, "color": "rgba(0,0,0,0.05)", "opacity": 5},
+      {"name": "按钮按压阴影", "type": "dropShadow", "offsetX": 0, "offsetY": 4, "blur": 6, "color": "rgba(139,90,43,0.2)", "opacity": 20},
+      {"name": "输入框内阴影", "type": "innerShadow", "offsetX": 0, "offsetY": 1, "blur": 3, "color": "rgba(0,0,0,0.03)", "opacity": 3}
+    ]
+  },
+  "components": [
+    {
+      "name": "按钮-主按钮大",
+      "size": {"w": 343, "h": 48},
+      "cornerRadius": 8,
+      "fill": "linear-gradient(#8B5A2B, #6D4C41)",
+      "text": {"content": "开始冲泡", "style": "正文-常规", "color": "#FFFFFF"},
+      "variants": [
+        {"name": "hover", "effect": "按钮按压阴影"},
+        {"name": "click", "scale": 0.95}
+      ],
+      "constraints": {"horizontal": "LEFT", "vertical": "TOP"}
+    },
+    {
+      "name": "按钮-主按钮小",
+      "size": {"w": 80, "h": 32},
+      "cornerRadius": 8,
+      "fill": "#8B5A2B",
+      "text": {"content": "保存配方", "style": "次要文字", "color": "#FFFFFF"},
+      "variants": [{"name": "click", "scale": 0.95}],
+      "constraints": {"horizontal": "LEFT", "vertical": "TOP"}
+    },
+    {
+      "name": "按钮-次按钮大",
+      "size": {"w": 343, "h": 48},
+      "cornerRadius": 8,
+      "fill": "#F5F0EB",
+      "stroke": {"color": "#8B5A2B", "width": 1},
+      "text": {"content": "自定义冲泡", "style": "正文-常规", "color": "#8B5A2B"},
+      "variants": [{"name": "hover", "fill": "#8B5A2B", "text": {"color": "#FFFFFF"}}],
+      "constraints": {"horizontal": "LEFT", "vertical": "TOP"}
+    },
+    {
+      "name": "按钮-次按钮小",
+      "size": {"w": 60, "h": 60},
+      "cornerRadius": 30,
+      "fill": "#F5F0EB",
+      "text": {"content": "美式", "style": "正文-小", "color": "#8B5A2B"},
+      "icon": {"name": "咖啡杯", "size": 24, "color": "#8B5A2B"},
+      "variants": [{"name": "click", "scale": 0.95}],
+      "constraints": {"horizontal": "LEFT", "vertical": "TOP"}
+    },
+    {
+      "name": "卡片-设备信息大",
+      "size": {"w": 343, "h": 120},
+      "cornerRadius": 12,
+      "fill": "#F5F0EB",
+      "effect": "卡片轻微阴影",
+      "elements": [{"name": "咖啡机插画", "size": {"w": 80, "h": 80}, "position": {"x": 16, "y": 20}}, {"name": "状态文字区", "position": {"x": 110, "y": 16}}],
+      "constraints": {"horizontal": "LEFT", "vertical": "TOP"}
+    },
+    {
+      "name": "卡片-功能双列",
+      "size": {"w": 168, "h": 100},
+      "cornerRadius": 12,
+      "fill": "#F5F0EB",
+      "effect": "卡片轻微阴影",
+      "icon": {"size": 32, "color": "#8B5A2B"},
+      "text": {"content": "我的配方", "style": "正文-小", "color": "#8B5A2B"},
+      "constraints": {"horizontal": "LEFT", "vertical": "TOP"}
+    },
+    {
+      "name": "卡片-配方瀑布流",
+      "size": {"w": 168, "h": 200},
+      "cornerRadius": 12,
+      "fill": "#F5F0EB",
+      "effect": "卡片轻微阴影",
+      "elements": [{"name": "饮品图", "size": {"w": 168, "h": 100}, "cornerRadius": 8}, {"name": "配方信息区", "position": {"x": 8, "y": 110}}],
+      "constraints": {"horizontal": "LEFT", "vertical": "TOP"}
+    },
+    {
+      "name": "卡片-设置列表",
+      "size": {"w": 343, "h": 44},
+      "fill": "#FFFFFF",
+      "text": {"content": "语音提醒", "style": "正文-小", "color": "#333333"},
+      "rightElement": {"name": "开关", "size": {"w": 40, "h": 24}},
+      "constraints": {"horizontal": "LEFT", "vertical": "TOP"}
+    },
+    {
+      "name": "基础-滑杆",
+      "size": {"w": 280, "h": 6},
+      "cornerRadius": 3,
+      "fill": "#EEEEEE",
+      "slider": {"size": {"w": 16, "h": 16}, "cornerRadius": 8, "fill": "#E67E22"},
+      "constraints": {"horizontal": "LEFT", "vertical": "TOP"}
+    },
+    {
+      "name": "基础-输入框",
+      "size": {"w": 343, "h": 40},
+      "cornerRadius": 8,
+      "fill": "#FFFFFF",
+      "stroke": {"color": "#EEEEEE", "width": 1},
+      "padding": 16,
+      "placeholder": {"content": "饮品命名", "style": "正文-小", "color": "#999999"},
+      "effect": "输入框内阴影",
+      "constraints": {"horizontal": "LEFT", "vertical": "TOP"}
+    },
+    {
+      "name": "导航-Tab栏",
+      "size": {"w": 375, "h": 44},
+      "fill": "#FFFFFF",
+      "tabs": [
+        {"name": "首页", "icon": 24, "text": "首页", "style": "次要文字"},
+        {"name": "配方", "icon": 24, "text": "配方", "style": "次要文字"},
+        {"name": "设备", "icon": 24, "text": "设备", "style": "次要文字"},
+        {"name": "我的", "icon": 24, "text": "我的", "style": "次要文字"}
+      ],
+      "variants": [{"name": "首页高亮", "tabs": [{"name": "首页", "color": "#8B5A2B"}]}],
+      "constraints": {"horizontal": "LEFT", "vertical": "BOTTOM"}
+    }
+  ],
+  "icons": [
+    {"name": "咖啡杯", "size": 24, "path": "M12 20C15.866 20 19 16.866 19 13C19 9.13401 15.866 6 12 6C8.13401 6 5 9.13401 5 13C5 16.866 8.13401 20 12 20Z", "strokeWidth": 2},
+    {"name": "咖啡豆", "size": 24, "path": "M12 2C15.3137 2 18 4.68629 18 8C18 11.3137 15.3137 14 12 14C8.68629 14 6 11.3137 6 8C6 4.68629 8.68629 2 12 2Z", "strokeWidth": 2},
+    {"name": "蒸汽", "size": 32, "path": "M16 32C20.4183 32 24 28.4183 24 24C24 19.5817 20.4183 16 16 16C11.5817 16 8 19.5817 8 24C8 28.4183 11.5817 32 16 32Z", "strokeWidth": 2},
+    {"name": "齿轮", "size": 24, "path": "M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2Z", "strokeWidth": 2},
+    {"name": "闹钟", "size": 24, "path": "M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2Z", "strokeWidth": 2},
+    {"name": "首页", "size": 24, "path": "M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z", "strokeWidth": 2},
+    {"name": "配方", "size": 24, "path": "M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2Z", "strokeWidth": 2},
+    {"name": "设备", "size": 24, "path": "M15 2H9C7.89543 2 7 2.89543 7 4V20C7 21.1046 7.89543 22 9 22H15C16.1046 22 17 21.1046 17 20V4C17 2.89543 16.1046 2 15 2Z", "strokeWidth": 2},
+    {"name": "我的", "size": 24, "path": "M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z", "strokeWidth": 2}
+  ]
+}

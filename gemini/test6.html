@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Coffee UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* 隐藏滚动条但允许滚动 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* 制作中的旋转动画 */
+        @keyframes spin-border {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .process-running {
+            border-top-color: #f59e0b !important; /* Amber-500 */
+            border-right-color: #f59e0b !important;
+            animation: spin-border 1s linear infinite;
+        }
+
+        /* 模拟屏幕辉光 */
+        .screen-glow {
+            box-shadow: 0 0 20px rgba(0,0,0,0.5) inset;
+        }
+    </style>
+</head>
+<body class="bg-gray-200 flex items-center justify-center h-screen w-screen overflow-hidden font-sans select-none">
+
+    <div id="machine-screen" class="relative bg-slate-900 text-white overflow-hidden shadow-2xl ring-8 ring-gray-800 rounded-lg screen-glow transition-all duration-500" style="width: 1000px; height: 250px;">
+        
+        <div id="page-standby" class="absolute inset-0 z-50 flex flex-col items-center justify-center cursor-pointer bg-black" onclick="wakeUp()">
+            <img src="https://images.unsplash.com/photo-1447933601400-b8a901532213?q=80&w=2000&auto=format&fit=crop" 
+                 class="absolute inset-0 w-full h-full object-cover opacity-60" alt="Coffee Background">
+            
+            <div class="relative z-10 text-center animate-pulse">
+                <h1 class="text-4xl font-light tracking-[0.2em] mb-2">INTELLIGENT BREW</h1>
+                <p class="text-slate-300 text-sm tracking-widest uppercase">轻触屏幕唤醒 | Touch to Wake</p>
+            </div>
+        </div>
+
+        <div id="page-selection" class="absolute inset-0 z-40 bg-slate-900 flex flex-col hidden transition-opacity duration-500">
+            <div class="h-10 flex items-center justify-between px-6 border-b border-slate-800">
+                <span class="text-xs text-slate-400">请选择饮品</span>
+                <span class="text-xs text-amber-500"><i class="fas fa-arrow-right"></i> 左右滑动</span>
+            </div>
+            
+            <div class="flex-1 flex items-center overflow-x-auto no-scrollbar snap-x px-10 gap-8" id="drink-list">
+                <div class="drink-card min-w-[160px] h-[160px] bg-slate-800 rounded-xl p-2 flex flex-col items-center justify-center snap-center hover:bg-slate-700 active:scale-95 transition-all cursor-pointer border border-slate-700 hover:border-amber-500" onclick="selectDrink('Espresso')">
+                    
+                    <div class="w-20 h-20 rounded-full overflow-hidden mb-2 border-2 border-slate-600">
+                         <img src="https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover">
+                    </div>
+                    <span class="font-bold text-lg">Espresso</span>
+                </div>
+                
+                <div class="drink-card min-w-[160px] h-[160px] bg-slate-800 rounded-xl p-2 flex flex-col items-center justify-center snap-center hover:bg-slate-700 active:scale-95 transition-all cursor-pointer border border-slate-700 hover:border-amber-500" onclick="selectDrink('Americano')">
+                    
+                    <div class="w-20 h-20 rounded-full overflow-hidden mb-2 border-2 border-slate-600">
+                        <img src="https://images.unsplash.com/photo-1551030173-122f6d356c00?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover">
+                    </div>
+                    <span class="font-bold text-lg">Americano</span>
+                </div>
+
+                <div class="drink-card min-w-[160px] h-[160px] bg-slate-800 rounded-xl p-2 flex flex-col items-center justify-center snap-center hover:bg-slate-700 active:scale-95 transition-all cursor-pointer border border-slate-700 hover:border-amber-500" onclick="selectDrink('Latte')">
+                     
+
+[Image of Latte art]
+
+                    <div class="w-20 h-20 rounded-full overflow-hidden mb-2 border-2 border-slate-600">
+                        <img src="https://images.unsplash.com/photo-1570968992193-6e5c922e5363?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover">
+                    </div>
+                    <span class="font-bold text-lg">Latte</span>
+                </div>
+
+                 <div class="drink-card min-w-[160px] h-[160px] bg-slate-800 rounded-xl p-2 flex flex-col items-center justify-center snap-center hover:bg-slate-700 active:scale-95 transition-all cursor-pointer border border-slate-700 hover:border-amber-500" onclick="selectDrink('Cappuccino')">
+                    
+
+[Image of Cappuccino]
+
+                   <div class="w-20 h-20 rounded-full overflow-hidden mb-2 border-2 border-slate-600">
+                       <img src="https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover">
+                   </div>
+                   <span class="font-bold text-lg">Cappuccino</span>
+               </div>
+            </div>
+        </div>
+
+        <div id="page-process" class="absolute inset-0 z-30 bg-slate-900 flex flex-col hidden">
+            <div class="h-8 flex items-center justify-between px-4 bg-slate-800/50">
+                <button onclick="goBack()" class="text-slate-400 hover:text-white text-sm"><i class="fas fa-chevron-left"></i> 返回</button>
+                <span id="selected-drink-name" class="text-amber-500 font-bold tracking-wider">ESPRESSO</span>
+                <div class="w-10"></div> </div>
+
+            <div class="flex-1 grid grid-cols-3 gap-2 px-4 py-2">
+                
+                <div class="flex flex-col items-center justify-start gap-3 relative group">
+                    <div id="circle-grind" onclick="startProcess('grind')" 
+                         class="w-24 h-24 rounded-full border-[6px] border-slate-700 flex items-center justify-center cursor-pointer active:scale-95 transition-all relative bg-slate-800 shadow-inner">
+                        <div id="badge-grind" class="absolute -top-3 bg-green-500 text-white text-[10px] px-2 py-0.5 rounded-full shadow opacity-0 transition-opacity duration-300">完成</div>
+                        
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-dharmachakra text-2xl text-slate-400 mb-1"></i>
+                            <span class="text-xs text-slate-300">研磨</span>
+                        </div>
+                    </div>
+                    
+                    <button id="btn-grind-size" onclick="toggleSetting('grind-size')" 
+                            class="w-full py-1.5 px-2 bg-slate-800 border border-slate-600 rounded text-xs text-slate-300 hover:bg-slate-700 active:bg-slate-600 transition-colors flex items-center justify-center gap-2">
+                        <span>粗细:</span> <span class="text-amber-400 font-bold">中等</span>
+                    </button>
+                </div>
+
+                <div class="flex flex-col items-center justify-start gap-3 relative">
+                    <div id="circle-extract" onclick="startProcess('extract')" 
+                         class="w-24 h-24 rounded-full border-[6px] border-slate-700 flex items-center justify-center cursor-pointer active:scale-95 transition-all relative bg-slate-800 shadow-inner">
+                         <div id="badge-extract" class="absolute -top-3 bg-green-500 text-white text-[10px] px-2 py-0.5 rounded-full shadow opacity-0 transition-opacity duration-300">完成</div>
+
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-fill-drip text-2xl text-slate-400 mb-1"></i>
+                            <span class="text-xs text-slate-300">萃取</span>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-1 w-full">
+                        <button id="btn-shot" onclick="toggleSetting('shot')" 
+                                class="flex-1 py-1.5 bg-slate-800 border border-slate-600 rounded text-[10px] text-amber-400 hover:bg-slate-700">
+                            双杯
+                        </button>
+                        <button id="btn-water-temp" onclick="toggleSetting('water-temp')" 
+                                class="flex-1 py-1.5 bg-slate-800 border border-slate-600 rounded text-[10px] text-amber-400 hover:bg-slate-700">
+                            热水
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex flex-col items-center justify-start gap-3 relative">
+                    <div id="circle-froth" onclick="startProcess('froth')" 
+                         class="w-24 h-24 rounded-full border-[6px] border-slate-700 flex items-center justify-center cursor-pointer active:scale-95 transition-all relative bg-slate-800 shadow-inner">
+                         <div id="badge-froth" class="absolute -top-3 bg-green-500 text-white text-[10px] px-2 py-0.5 rounded-full shadow opacity-0 transition-opacity duration-300">完成</div>
+
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-wind text-2xl text-slate-400 mb-1"></i>
+                            <span class="text-xs text-slate-300">打泡</span>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-1 w-full">
+                        <button id="btn-froth-temp" onclick="toggleSetting('froth-temp')" 
+                                class="flex-1 py-1.5 bg-slate-800 border border-slate-600 rounded text-[10px] text-amber-400 hover:bg-slate-700">
+                            60°C
+                        </button>
+                        <button id="btn-froth-level" onclick="toggleSetting('froth-level')" 
+                                class="flex-1 py-1.5 bg-slate-800 border border-slate-600 rounded text-[10px] text-amber-400 hover:bg-slate-700">
+                            绵密
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 状态管理
+        const settings = {
+            grindSize: ['细', '中等', '粗'],
+            currentGrindIndex: 1,
+            shot: ['单杯', '双杯'],
+            currentShotIndex: 1,
+            waterTemp: ['常温', '热水'],
+            currentWaterTempIndex: 1,
+            frothTemp: ['50°C', '60°C', '70°C'],
+            currentFrothTempIndex: 1,
+            frothLevel: ['稀薄', '绵密', '厚重'],
+            currentFrothLevelIndex: 1
+        };
+
+        const processingState = {
+            grind: false,
+            extract: false,
+            froth: false
+        };
+
+        // 页面跳转逻辑
+        function wakeUp() {
+            document.getElementById('page-standby').classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                document.getElementById('page-selection').classList.remove('hidden');
+            }, 300);
+        }
+
+        function selectDrink(name) {
+            document.getElementById('selected-drink-name').innerText = name.toUpperCase();
+            document.getElementById('page-selection').classList.add('hidden');
+            document.getElementById('page-process').classList.remove('hidden');
+            resetProcessUI();
+        }
+
+        function goBack() {
+            document.getElementById('page-process').classList.add('hidden');
+            document.getElementById('page-selection').classList.remove('hidden');
+        }
+
+        function resetProcessUI() {
+            // 重置所有完成状态和徽章
+            ['grind', 'extract', 'froth'].forEach(type => {
+                const circle = document.getElementById(`circle-${type}`);
+                const badge = document.getElementById(`badge-${type}`);
+                circle.classList.remove('process-running', 'border-green-500');
+                circle.classList.add('border-slate-700');
+                badge.classList.remove('opacity-100');
+                badge.classList.add('opacity-0');
+                processingState[type] = false;
+            });
+        }
+
+        // 设置按钮切换逻辑
+        function toggleSetting(type) {
+            if (isProcessing()) return; // 制作中禁止修改
+
+            switch(type) {
+                case 'grind-size':
+                    settings.currentGrindIndex = (settings.currentGrindIndex + 1) % settings.grindSize.length;
+                    document.querySelector('#btn-grind-size span:last-child').innerText = settings.grindSize[settings.currentGrindIndex];
+                    break;
+                case 'shot':
+                    settings.currentShotIndex = (settings.currentShotIndex + 1) % settings.shot.length;
+                    document.getElementById('btn-shot').innerText = settings.shot[settings.currentShotIndex];
+                    break;
+                case 'water-temp':
+                    settings.currentWaterTempIndex = (settings.currentWaterTempIndex + 1) % settings.waterTemp.length;
+                    document.getElementById('btn-water-temp').innerText = settings.waterTemp[settings.currentWaterTempIndex];
+                    break;
+                case 'froth-temp':
+                    settings.currentFrothTempIndex = (settings.currentFrothTempIndex + 1) % settings.frothTemp.length;
+                    document.getElementById('btn-froth-temp').innerText = settings.frothTemp[settings.currentFrothTempIndex];
+                    break;
+                case 'froth-level':
+                    settings.currentFrothLevelIndex = (settings.currentFrothLevelIndex + 1) % settings.frothLevel.length;
+                    document.getElementById('btn-froth-level').innerText = settings.frothLevel[settings.currentFrothLevelIndex];
+                    break;
+            }
+        }
+
+        // 制作流程控制
+        function startProcess(type) {
+            if (processingState[type]) return; // 防止重复点击
+
+            const circle = document.getElementById(`circle-${type}`);
+            const badge = document.getElementById(`badge-${type}`);
+            
+            // 1. 开始状态
+            processingState[type] = true;
+            badge.classList.remove('opacity-100'); // 隐藏完成提示
+            circle.classList.remove('border-slate-700', 'border-green-500');
+            circle.classList.add('process-running'); // 添加旋转动画 CSS
+
+            // 模拟制作时间 (3秒)
+            setTimeout(() => {
+                // 2. 完成状态
+                circle.classList.remove('process-running');
+                circle.classList.add('border-green-500'); // 变绿
+                
+                // 显示上边线的“完成”提示
+                badge.classList.remove('opacity-0');
+                badge.classList.add('opacity-100');
+                
+                processingState[type] = false;
+
+                // 2秒后恢复原状 (可选，如果希望保持完成状态则注释掉下面几行)
+                setTimeout(() => {
+                   circle.classList.remove('border-green-500');
+                   circle.classList.add('border-slate-700');
+                   badge.classList.remove('opacity-100');
+                   badge.classList.add('opacity-0');
+                }, 2000);
+
+            }, 3000);
+        }
+
+        function isProcessing() {
+            return processingState.grind || processingState.extract || processingState.froth;
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Coffee UI</title>
+    <style>
+        :root {
+            --bg-color: #1a1c20;
+            --panel-bg: #23252a;
+            --text-grey: #6e727d;
+            --accent-gold: #ffb040;
+            --accent-glow: rgba(255, 176, 64, 0.4);
+            --digital-blue: #66b8ff;
+            --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            color: white;
+            font-family: var(--font-main);
+        }
+
+        /* 模拟器容器 
+           为了在电脑屏幕上看清，这里放大了尺寸，但保持了宽扁的比例 
+           实际 200x50 像素对于这种复杂UI来说非常小，通常嵌入式设备会有逻辑分辨率
+        */
+        .device-wrapper {
+            width: 800px;  /* 逻辑宽度 */
+            height: 200px; /* 逻辑高度，保持 4:1 比例 */
+            background-color: var(--bg-color);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+        }
+
+        /* 通用布局 */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            transition: transform 0.4s ease-in-out, opacity 0.4s;
+        }
+
+        .screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.95);
+        }
+
+        .screen.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* --- 页面 1: 饮品选择 (Carousel) --- */
+        .selection-screen {
+            align-items: center;
+            justify-content: space-evenly;
+            background: radial-gradient(circle at center, #2a2d35 0%, var(--bg-color) 70%);
+        }
+
+        .drink-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0.5;
+            transition: all 0.3s;
+            cursor: pointer;
+            transform: scale(0.8);
+        }
+
+        .drink-item svg {
+            width: 50px;
+            height: 50px;
+            fill: none;
+            stroke: var(--text-grey);
+            stroke-width: 2;
+            margin-bottom: 10px;
+        }
+
+        .drink-item span {
+            font-size: 14px;
+            color: var(--text-grey);
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        /* 选中的状态 */
+        .drink-item.active {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .drink-item.active svg {
+            stroke: var(--accent-gold);
+            filter: drop-shadow(0 0 10px var(--accent-glow));
+        }
+
+        .drink-item.active span {
+            color: var(--accent-gold);
+            text-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .nav-arrow {
+            color: var(--accent-gold);
+            font-size: 24px;
+            opacity: 0.7;
+        }
+
+        /* --- 页面 2: 制作设置 (Settings) --- */
+        .brewing-screen {
+            padding: 10px;
+            box-sizing: border-box;
+            display: grid;
+            grid-template-columns: 0.8fr 0.8fr 0.8fr 1.2fr; /* 分栏比例 */
+            gap: 10px;
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 5px;
+            border: 1px solid #333;
+        }
+
+        .panel-title {
+            font-size: 12px;
+            color: #888;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        /* 1. Grind Panel */
+        .grind-viz {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end; /* 右对齐模拟梯形 */
+            justify-content: center;
+            gap: 3px;
+            height: 100%;
+        }
+        .bar {
+            height: 4px;
+            background-color: #444;
+            border-radius: 2px;
+            transition: 0.2s;
+        }
+        .bar.active { background-color: var(--accent-gold); box-shadow: 0 0 5px var(--accent-glow); }
+        /* 模拟梯形长度 */
+        .b1 { width: 10px; } .b2 { width: 14px; } .b3 { width: 18px; } .b4 { width: 22px; } .b5 { width: 26px; }
+
+        /* 2. Mode Panel */
+        .mode-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .mode-btn svg { width: 20px; fill: #666; }
+        .mode-btn.active {
+            border-color: var(--accent-gold);
+            box-shadow: inset 0 0 10px rgba(255, 176, 64, 0.1);
+        }
+        .mode-btn.active svg { fill: var(--accent-gold); }
+
+        /* 3. Time Panel */
+        .digital-time {
+            font-family: 'Courier New', monospace;
+            font-size: 20px;
+            color: var(--digital-blue);
+            text-shadow: 0 0 5px rgba(102, 184, 255, 0.5);
+            font-weight: bold;
+        }
+        .time-controls {
+            display: flex;
+            gap: 5px;
+        }
+        .t-btn {
+            width: 20px;
+            height: 20px;
+            background: #333;
+            border: none;
+            color: var(--digital-blue);
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 4. Brew Panel */
+        .brew-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+        .brew-btn {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #2a2a2a 40%, #111 100%);
+            border: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-gold);
+            font-size: 16px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            transition: 0.2s;
+        }
+        /* 外圈光环 */
+        .brew-ring {
+            position: absolute;
+            top: -5px; left: -5px; right: -5px; bottom: -5px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: var(--accent-gold);
+            border-right-color: var(--accent-gold);
+            opacity: 0.8;
+            filter: drop-shadow(0 0 5px var(--accent-gold));
+            animation: spin 3s linear infinite paused;
+        }
+        
+        .brew-btn:active { transform: scale(0.95); }
+        .brew-btn.running .brew-ring { animation-play-state: running; }
+        
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .progress-bar {
+            width: 80%;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-fill {
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 40%;
+            background: var(--accent-gold);
+            box-shadow: 0 0 5px var(--accent-gold);
+        }
+        .status-text {
+            font-size: 10px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        /* 提示信息 */
+        .hint {
+            margin-top: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="device-wrapper">
+        
+        <div id="screen-selection" class="screen selection-screen active">
+            <div class="drink-item">
+                <svg viewBox="0 0 24 24"><path d="M4 19h16v-2c0-2.5-1.5-4.5-4-5v-2h-8v2c-2.5 0.5-4 2.5-4 5v2z M6 6h12v2h-12z" /></svg>
+                <span>AMERICANO</span>
+            </div>
+
+            <div class="nav-arrow">&lt;</div>
+
+            <div class="drink-item active" onclick="goToSettings()">
+                <svg viewBox="0 0 100 80">
+                    <path d="M10,10 L90,10 C90,10 85,50 50,55 C15,50 10,10 10,10 Z" fill="rgba(255,176,64,0.1)" stroke-width="4"/>
+                    <path d="M90,15 Q105,15 100,35 Q95,50 82,45" fill="none" stroke-width="4"/>
+                    <line x1="20" y1="55" x2="80" y2="55" stroke-linecap="round" stroke-width="4" transform="translate(0, 5)"/>
+                    <path d="M20,25 L80,25" stroke="var(--accent-gold)" stroke-width="2" opacity="0.5"/>
+                </svg>
+                <span>ESPRESSO</span>
+            </div>
+
+            <div class="nav-arrow">&gt;</div>
+
+            <div class="drink-item">
+                <svg viewBox="0 0 24 24"><path d="M6 4h12v14c0 1.1-.9 2-2 2h-8c-1.1 0-2-.9-2-2v-14z M19 7h3v3h-3z" /></svg>
+                <span>LATTE</span>
+            </div>
+        </div>
+
+        <div id="screen-brew" class="screen brewing-screen hidden">
+            
+            <div class="panel">
+                <div class="panel-title">GRIND</div>
+                <div class="grind-viz">
+                    <div class="bar b1"></div>
+                    <div class="bar b2"></div>
+                    <div class="bar b3 active"></div>
+                    <div class="bar b4 active"></div>
+                    <div class="bar b5 active"></div>
+                </div>
+                <div class="panel-title" style="font-size:10px; align-self:flex-start;">FINE</div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">MODE</div>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <div class="mode-btn active">
+                        <svg viewBox="0 0 24 24"><path d="M5 5h14v8c0 2-2 4-4 4h-6c-2 0-4-2-4-4v-8z"/></svg>
+                    </div>
+                    <div class="mode-btn">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M2 6h8v6c0 1.5-1 3-3 3h-2c-2 0-3-1.5-3-3v-6z"/>
+                            <path d="M12 6h8v6c0 1.5-1 3-3 3h-2c-2 0-3-1.5-3-3v-6z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">TIME</div>
+                <div class="digital-time">00:30<span style="font-size:12px">s</span></div>
+                <div class="time-controls">
+                    <button class="t-btn">-</button>
+                    <button class="t-btn">+</button>
+                </div>
+            </div>
+
+            <div class="brew-container">
+                <div class="brew-btn" id="brewBtn" onclick="toggleBrew()">
+                    <div class="brew-ring"></div>
+                    BREW
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <div class="status-text">READY</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="hint">点击 <b>ESPRESSO</b> 进入设置 | 点击 <b>BREW</b> 开始动画</div>
+
+    <script>
+        // 简单的页面切换逻辑
+        function goToSettings() {
+            document.getElementById('screen-selection').classList.remove('active');
+            document.getElementById('screen-selection').classList.add('hidden');
+            
+            setTimeout(() => {
+                document.getElementById('screen-brew').classList.remove('hidden');
+                document.getElementById('screen-brew').classList.add('active');
+            }, 100);
+        }
+
+        // 简单的Brew按钮交互
+        function toggleBrew() {
+            const btn = document.getElementById('brewBtn');
+            const status = document.querySelector('.status-text');
+            
+            if (btn.classList.contains('running')) {
+                btn.classList.remove('running');
+                btn.innerHTML = '<div class="brew-ring"></div>BREW';
+                status.innerText = "READY";
+                status.style.color = "#666";
+            } else {
+                btn.classList.add('running');
+                btn.innerHTML = '<div class="brew-ring"></div>STOP';
+                status.innerText = "BREWING...";
+                status.style.color = "var(--accent-gold)";
+            }
+        }
+    </script>
+</body>
+</html>
