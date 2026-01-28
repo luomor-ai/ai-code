@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能咖啡机操作界面</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 自定义样式 */
+        :root {
+            --screen-width: 200px;
+            --screen-height: 50px;
+            --primary-color: #c2410c;
+            --primary-dark: #9a3412;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #1f2937;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        
+        .coffee-machine {
+            width: var(--screen-width);
+            height: var(--screen-height);
+            background-color: #0f172a;
+            border-radius: 8px;
+            border: 3px solid #334155;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+        
+        .screen {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 待机界面 */
+        .standby-screen {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #111827;
+            cursor: pointer;
+        }
+        
+        .coffee-icon {
+            font-size: 18px;
+            color: #c2410c;
+            margin-bottom: 4px;
+        }
+        
+        .standby-text {
+            color: #94a3b8;
+            font-size: 8px;
+            text-align: center;
+        }
+        
+        /* 饮品选择界面 */
+        .drink-selection-screen {
+            width: 100%;
+            height: 100%;
+            padding: 6px;
+            display: none;
+        }
+        
+        .drink-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        
+        .drink-title {
+            color: #f8fafc;
+            font-size: 9px;
+            font-weight: 600;
+        }
+        
+        .back-button {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 8px;
+            cursor: pointer;
+            padding: 2px 4px;
+        }
+        
+        .drink-slider-container {
+            position: relative;
+            height: 28px;
+            overflow: hidden;
+        }
+        
+        .drink-slider {
+            display: flex;
+            transition: transform 0.3s ease;
+            height: 100%;
+        }
+        
+        .drink-item {
+            flex: 0 0 33.333%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2px;
+        }
+        
+        .drink-image {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            background-color: #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2px;
+        }
+        
+        .drink-icon {
+            color: #c2410c;
+            font-size: 10px;
+        }
+        
+        .drink-name {
+            color: #e2e8f0;
+            font-size: 6px;
+            text-align: center;
+        }
+        
+        .slider-indicator {
+            display: flex;
+            justify-content: center;
+            margin-top: 2px;
+        }
+        
+        .indicator-dot {
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background-color: #475569;
+            margin: 0 1px;
+        }
+        
+        .indicator-dot.active {
+            background-color: #c2410c;
+        }
+        
+        /* 制作界面 */
+        .brewing-screen {
+            width: 100%;
+            height: 100%;
+            padding: 6px;
+            display: none;
+        }
+        
+        .process-container {
+            display: flex;
+            justify-content: space-between;
+            height: 100%;
+        }
+        
+        .process-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 30%;
+        }
+        
+        .process-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .process-circle.active {
+            border-color: #c2410c;
+        }
+        
+        .process-circle.brewing {
+            border-color: #c2410c;
+            border-top-color: transparent;
+            animation: spin 1.5s linear infinite;
+        }
+        
+        .process-circle.completed {
+            border-color: #10b981;
+        }
+        
+        .process-icon {
+            font-size: 8px;
+            color: #94a3b8;
+        }
+        
+        .process-circle.active .process-icon {
+            color: #c2410c;
+        }
+        
+        .process-circle.completed .process-icon {
+            color: #10b981;
+        }
+        
+        .process-name {
+            color: #cbd5e1;
+            font-size: 6px;
+            margin-bottom: 2px;
+        }
+        
+        .process-status {
+            font-size: 6px;
+            height: 8px;
+        }
+        
+        .process-status.ready {
+            color: #c2410c;
+        }
+        
+        .process-status.brewing {
+            color: #fbbf24;
+        }
+        
+        .process-status.completed {
+            color: #10b981;
+        }
+        
+        .process-controls {
+            margin-top: 2px;
+        }
+        
+        .control-button {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            border: none;
+            border-radius: 2px;
+            padding: 2px 4px;
+            font-size: 6px;
+            cursor: pointer;
+            margin-bottom: 2px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .control-button:hover {
+            background-color: #334155;
+        }
+        
+        /* 模态框 */
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+        }
+        
+        .modal {
+            background-color: #1e293b;
+            border-radius: 4px;
+            padding: 8px;
+            width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+        
+        .modal-title {
+            color: #f8fafc;
+            font-size: 8px;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+        
+        .slider-container {
+            margin-bottom: 8px;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            color: #cbd5e1;
+            font-size: 6px;
+            margin-bottom: 2px;
+        }
+        
+        .slider-value {
+            color: #c2410c;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #334155;
+            border-radius: 2px;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #c2410c;
+            cursor: pointer;
+        }
+        
+        .option-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 4px;
+        }
+        
+        .option-button {
+            flex: 1;
+            background-color: #334155;
+            color: #cbd5e1;
+            border: none;
+            border-radius: 2px;
+            padding: 3px 0;
+            font-size: 6px;
+            cursor: pointer;
+            margin: 0 1px;
+        }
+        
+        .option-button.active {
+            background-color: #c2410c;
+            color: white;
+        }
+        
+        .modal-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+        }
+        
+        .modal-button {
+            padding: 3px 8px;
+            font-size: 6px;
+            border-radius: 2px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .modal-button.confirm {
+            background-color: #c2410c;
+            color: white;
+        }
+        
+        .modal-button.cancel {
+            background-color: #475569;
+            color: #cbd5e1;
+        }
+        
+        /* 动画 */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 响应式调整 */
+        @media (max-height: 600px) {
+            body {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="coffee-machine">
+        <!-- 主屏幕区域 -->
+        <div class="screen">
+            <!-- 待机界面 -->
+            <div id="standbyScreen" class="standby-screen">
+                <div class="coffee-icon">
+                    <i class="fas fa-mug-hot"></i>
+                </div>
+                <div class="standby-text">
+                    轻触屏幕唤醒咖啡机
+                </div>
+            </div>
+            
+            <!-- 饮品选择界面 -->
+            <div id="drinkSelectionScreen" class="drink-selection-screen">
+                <div class="drink-header">
+                    <div class="drink-title">选择饮品</div>
+                    <button id="backToStandby" class="back-button">
+                        <i class="fas fa-power-off"></i>
+                    </button>
+                </div>
+                <div class="drink-slider-container">
+                    <div id="drinkSlider" class="drink-slider">
+                        <!-- 饮品将通过JS动态生成 -->
+                    </div>
+                </div>
+                <div class="slider-indicator">
+                    <div class="indicator-dot active" data-index="0"></div>
+                    <div class="indicator-dot" data-index="1"></div>
+                    <div class="indicator-dot" data-index="2"></div>
+                </div>
+            </div>
+            
+            <!-- 制作界面 -->
+            <div id="brewingScreen" class="brewing-screen">
+                <div class="process-container">
+                    <!-- 研磨步骤 -->
+                    <div class="process-step">
+                        <div class="process-name">研磨</div>
+                        <div id="grindCircle" class="process-circle" data-process="grind">
+                            <i class="fas fa-cogs process-icon"></i>
+                        </div>
+                        <div id="grindStatus" class="process-status ready">准备</div>
+                        <div class="process-controls">
+                            <button id="grindSettingBtn" class="control-button">粗细: 中</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 萃取步骤 -->
+                    <div class="process-step">
+                        <div class="process-name">萃取</div>
+                        <div id="extractCircle" class="process-circle" data-process="extract">
+                            <i class="fas fa-tint process-icon"></i>
+                        </div>
+                        <div id="extractStatus" class="process-status">准备</div>
+                        <div class="process-controls">
+                            <button id="extractSettingBtn" class="control-button">单杯/热水</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 打泡步骤 -->
+                    <div class="process-step">
+                        <div class="process-name">打泡</div>
+                        <div id="foamCircle" class="process-circle" data-process="foam">
+                            <i class="fas fa-wind process-icon"></i>
+                        </div>
+                        <div id="foamStatus" class="process-status">准备</div>
+                        <div class="process-controls">
+                            <button id="foamSettingBtn" class="control-button">温度/丰度</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 模态框 - 研磨设置 -->
+        <div id="grindModal" class="modal-overlay">
+            <div class="modal">
+                <div class="modal-title">研磨设置</div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>研磨粗细</span>
+                        <span id="grindValue" class="slider-value">中等</span>
+                    </div>
+                    <input type="range" min="1" max="5" value="3" class="slider" id="grindSlider">
+                    <div class="slider-label" style="justify-content: space-between; margin-top: 2px;">
+                        <span style="font-size: 5px;">细</span>
+                        <span style="font-size: 5px;">粗</span>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button id="cancelGrind" class="modal-button cancel">取消</button>
+                    <button id="confirmGrind" class="modal-button confirm">确认</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 模态框 - 萃取设置 -->
+        <div id="extractModal" class="modal-overlay">
+            <div class="modal">
+                <div class="modal-title">萃取设置</div>
+                <div style="margin-bottom: 8px;">
+                    <div style="color: #cbd5e1; font-size: 6px; margin-bottom: 4px;">杯数</div>
+                    <div class="option-buttons">
+                        <button class="option-button active" data-value="single">单杯</button>
+                        <button class="option-button" data-value="double">双杯</button>
+                    </div>
+                </div>
+                <div>
+                    <div style="color: #cbd5e1; font-size: 6px; margin-bottom: 4px;">温度</div>
+                    <div class="option-buttons">
+                        <button class="option-button" data-value="normal">常温</button>
+                        <button class="option-button active" data-value="hot">热水</button>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button id="cancelExtract" class="modal-button cancel">取消</button>
+                    <button id="confirmExtract" class="modal-button confirm">确认</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 模态框 - 打泡设置 -->
+        <div id="foamModal" class="modal-overlay">
+            <div class="modal">
+                <div class="modal-title">打泡设置</div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>温度</span>
+                        <span id="tempValue" class="slider-value">60°C</span>
+                    </div>
+                    <input type="range" min="40" max="80" value="60" class="slider" id="tempSlider">
+                    <div class="slider-label" style="justify-content: space-between; margin-top: 2px;">
+                        <span style="font-size: 5px;">低温</span>
+                        <span style="font-size: 5px;">高温</span>
+                    </div>
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>丰度</span>
+                        <span id="richnessValue" class="slider-value">中等</span>
+                    </div>
+                    <input type="range" min="1" max="5" value="3" class="slider" id="richnessSlider">
+                    <div class="slider-label" style="justify-content: space-between; margin-top: 2px;">
+                        <span style="font-size: 5px;">少</span>
+                        <span style="font-size: 5px;">多</span>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button id="cancelFoam" class="modal-button cancel">取消</button>
+                    <button id="confirmFoam" class="modal-button confirm">确认</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 饮品数据
+        const drinks = [
+            { id: 1, name: "意式浓缩", icon: "fa-coffee" },
+            { id: 2, name: "美式咖啡", icon: "fa-mug-hot" },
+            { id: 3, name: "卡布奇诺", icon: "fa-mug-saucer" },
+            { id: 4, name: "拿铁", icon: "fa-beer" },
+            { id: 5, name: "摩卡", icon: "fa-whiskey-glass" },
+            { id: 6, name: "热巧克力", icon: "fa-mug-hot" }
+        ];
+        
+        // 当前状态
+        let currentScreen = 'standby';
+        let currentDrinkIndex = 0;
+        let grindLevel = 3; // 1-5
+        let cupSize = 'single'; // 'single' or 'double'
+        let temperature = 'hot'; // 'normal' or 'hot'
+        let foamTemp = 60; // 40-80
+        let foamRichness = 3; // 1-5
+        let isBrewing = false;
+        let brewingProcess = null;
+        let brewingTimer = null;
+        
+        // DOM元素
+        const standbyScreen = document.getElementById('standbyScreen');
+        const drinkSelectionScreen = document.getElementById('drinkSelectionScreen');
+        const brewingScreen = document.getElementById('brewingScreen');
+        const drinkSlider = document.getElementById('drinkSlider');
+        const indicatorDots = document.querySelectorAll('.indicator-dot');
+        const grindCircle = document.getElementById('grindCircle');
+        const extractCircle = document.getElementById('extractCircle');
+        const foamCircle = document.getElementById('foamCircle');
+        const grindStatus = document.getElementById('grindStatus');
+        const extractStatus = document.getElementById('extractStatus');
+        const foamStatus = document.getElementById('foamStatus');
+        const grindSettingBtn = document.getElementById('grindSettingBtn');
+        const extractSettingBtn = document.getElementById('extractSettingBtn');
+        const foamSettingBtn = document.getElementById('foamSettingBtn');
+        
+        // 模态框元素
+        const grindModal = document.getElementById('grindModal');
+        const extractModal = document.getElementById('extractModal');
+        const foamModal = document.getElementById('foamModal');
+        const grindSlider = document.getElementById('grindSlider');
+        const tempSlider = document.getElementById('tempSlider');
+        const richnessSlider = document.getElementById('richnessSlider');
+        
+        // 初始化饮品滑块
+        function initDrinkSlider() {
+            drinkSlider.innerHTML = '';
+            
+            drinks.forEach(drink => {
+                const drinkItem = document.createElement('div');
+                drinkItem.className = 'drink-item';
+                drinkItem.innerHTML = `
+                    <div class="drink-image">
+                        <i class="fas ${drink.icon} drink-icon"></i>
+                    </div>
+                    <div class="drink-name">${drink.name}</div>
+                `;
+                drinkSlider.appendChild(drinkItem);
+            });
+            
+            // 设置初始位置
+            updateDrinkSlider();
+        }
+        
+        // 更新饮品滑块位置
+        function updateDrinkSlider() {
+            const slideWidth = 100 / 3; // 每个饮品占33.333%
+            const translateX = -currentDrinkIndex * slideWidth;
+            drinkSlider.style.transform = `translateX(${translateX}%)`;
+            
+            // 更新指示点
+            indicatorDots.forEach((dot, index) => {
+                if (index === currentDrinkIndex) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+        
+        // 切换到待机界面
+        function goToStandby() {
+            currentScreen = 'standby';
+            standbyScreen.style.display = 'flex';
+            drinkSelectionScreen.style.display = 'none';
+            brewingScreen.style.display = 'none';
+        }
+        
+        // 切换到饮品选择界面
+        function goToDrinkSelection() {
+            currentScreen = 'drinkSelection';
+            standbyScreen.style.display = 'none';
+            drinkSelectionScreen.style.display = 'block';
+            brewingScreen.style.display = 'none';
+        }
+        
+        // 切换到制作界面
+        function goToBrewing() {
+            currentScreen = 'brewing';
+            standbyScreen.style.display = 'none';
+            drinkSelectionScreen.style.display = 'none';
+            brewingScreen.style.display = 'block';
+            
+            // 重置制作状态
+            resetBrewingProcess();
+        }
+        
+        // 重置制作过程
+        function resetBrewingProcess() {
+            isBrewing = false;
+            brewingProcess = null;
+            
+            // 重置圆圈状态
+            [grindCircle, extractCircle, foamCircle].forEach(circle => {
+                circle.classList.remove('brewing', 'completed');
+                circle.classList.add('active');
+            });
+            
+            // 重置状态文本
+            grindStatus.textContent = '准备';
+            grindStatus.className = 'process-status ready';
+            
+            extractStatus.textContent = '准备';
+            extractStatus.className = 'process-status';
+            
+            foamStatus.textContent = '准备';
+            foamStatus.className = 'process-status';
+        }
+        
+        // 开始制作过程
+        function startBrewingProcess(process) {
+            if (isBrewing) return;
+            
+            isBrewing = true;
+            brewingProcess = process;
+            
+            // 根据选择的过程设置状态
+            const processCircle = document.getElementById(`${process}Circle`);
+            const processStatus = document.getElementById(`${process}Status`);
+            
+            processCircle.classList.add('brewing');
+            processCircle.classList.remove('completed');
+            processStatus.textContent = '制作中...';
+            processStatus.className = 'process-status brewing';
+            
+            // 模拟制作过程，2秒后完成
+            brewingTimer = setTimeout(() => {
+                completeBrewingProcess(process);
+            }, 2000);
+        }
+        
+        // 完成制作过程
+        function completeBrewingProcess(process) {
+            const processCircle = document.getElementById(`${process}Circle`);
+            const processStatus = document.getElementById(`${process}Status`);
+            
+            processCircle.classList.remove('brewing');
+            processCircle.classList.add('completed');
+            processStatus.textContent = '完成';
+            processStatus.className = 'process-status completed';
+            
+            isBrewing = false;
+            brewingProcess = null;
+        }
+        
+        // 打开研磨设置模态框
+        function openGrindModal() {
+            grindModal.style.display = 'flex';
+        }
+        
+        // 打开萃取设置模态框
+        function openExtractModal() {
+            extractModal.style.display = 'flex';
+        }
+        
+        // 打开打泡设置模态框
+        function openFoamModal() {
+            foamModal.style.display = 'flex';
+        }
+        
+        // 关闭所有模态框
+        function closeAllModals() {
+            grindModal.style.display = 'none';
+            extractModal.style.display = 'none';
+            foamModal.style.display = 'none';
+        }
+        
+        // 更新研磨设置显示
+        function updateGrindDisplay() {
+            const grindLevels = ['特细', '细', '中等', '粗', '特粗'];
+            grindSettingBtn.textContent = `粗细: ${grindLevels[grindLevel - 1]}`;
+            document.getElementById('grindValue').textContent = grindLevels[grindLevel - 1];
+        }
+        
+        // 更新萃取设置显示
+        function updateExtractDisplay() {
+            const cupText = cupSize === 'single' ? '单杯' : '双杯';
+            const tempText = temperature === 'hot' ? '热水' : '常温';
+            extractSettingBtn.textContent = `${cupText}/${tempText}`;
+        }
+        
+        // 更新打泡设置显示
+        function updateFoamDisplay() {
+            const richnessLevels = ['少', '较少', '中等', '较多', '多'];
+            foamSettingBtn.textContent = `温度/丰度`;
+            document.getElementById('tempValue').textContent = `${foamTemp}°C`;
+            document.getElementById('richnessValue').textContent = richnessLevels[foamRichness - 1];
+        }
+        
+        // 初始化事件监听
+        function initEventListeners() {
+            // 待机界面点击唤醒
+            standbyScreen.addEventListener('click', goToDrinkSelection);
+            
+            // 返回待机按钮
+            document.getElementById('backToStandby').addEventListener('click', goToStandby);
+            
+            // 饮品选择滑动
+            let startX = 0;
+            let isDragging = false;
+            
+            drinkSlider.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                isDragging = true;
+            });
+            
+            drinkSlider.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+            });
+            
+            drinkSlider.addEventListener('touchend', (e) => {
+                if (!isDragging) return;
+                
+                const endX = e.changedTouches[0].clientX;
+                const diffX = startX - endX;
+                
+                // 滑动阈值
+                if (Math.abs(diffX) > 20) {
+                    if (diffX > 0 && currentDrinkIndex < drinks.length - 1) {
+                        // 向左滑动
+                        currentDrinkIndex++;
+                    } else if (diffX < 0 && currentDrinkIndex > 0) {
+                        // 向右滑动
+                        currentDrinkIndex--;
+                    }
+                    
+                    updateDrinkSlider();
+                }
+                
+                isDragging = false;
+            });
+            
+            // 饮品点击选择
+            drinkSlider.addEventListener('click', (e) => {
+                if (e.target.closest('.drink-item')) {
+                    goToBrewing();
+                }
+            });
+            
+            // 制作过程圆圈点击
+            grindCircle.addEventListener('click', () => {
+                if (!grindCircle.classList.contains('brewing') && 
+                    !grindCircle.classList.contains('completed')) {
+                    startBrewingProcess('grind');
+                }
+            });
+            
+            extractCircle.addEventListener('click', () => {
+                if (!extractCircle.classList.contains('brewing') && 
+                    !extractCircle.classList.contains('completed')) {
+                    startBrewingProcess('extract');
+                }
+            });
+            
+            foamCircle.addEventListener('click', () => {
+                if (!foamCircle.classList.contains('brewing') && 
+                    !foamCircle.classList.contains('completed')) {
+                    startBrewingProcess('foam');
+                }
+            });
+            
+            // 设置按钮点击
+            grindSettingBtn.addEventListener('click', openGrindModal);
+            extractSettingBtn.addEventListener('click', openExtractModal);
+            foamSettingBtn.addEventListener('click', openFoamModal);
+            
+            // 研磨设置
+            grindSlider.addEventListener('input', function() {
+                grindLevel = parseInt(this.value);
+                updateGrindDisplay();
+            });
+            
+            document.getElementById('confirmGrind').addEventListener('click', () => {
+                closeAllModals();
+                updateGrindDisplay();
+            });
+            
+            document.getElementById('cancelGrind').addEventListener('click', closeAllModals);
+            
+            // 萃取设置
+            const extractOptions = extractModal.querySelectorAll('.option-button');
+            extractOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const parent = this.parentElement;
+                    const siblings = parent.querySelectorAll('.option-button');
+                    siblings.forEach(sib => sib.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    if (parent.querySelector('[data-value="single"]') || 
+                        parent.querySelector('[data-value="double"]')) {
+                        cupSize = this.getAttribute('data-value');
+                    } else {
+                        temperature = this.getAttribute('data-value');
+                    }
+                });
+            });
+            
+            document.getElementById('confirmExtract').addEventListener('click', () => {
+                closeAllModals();
+                updateExtractDisplay();
+            });
+            
+            document.getElementById('cancelExtract').addEventListener('click', closeAllModals);
+            
+            // 打泡设置
+            tempSlider.addEventListener('input', function() {
+                foamTemp = parseInt(this.value);
+                updateFoamDisplay();
+            });
+            
+            richnessSlider.addEventListener('input', function() {
+                foamRichness = parseInt(this.value);
+                updateFoamDisplay();
+            });
+            
+            document.getElementById('confirmFoam').addEventListener('click', () => {
+                closeAllModals();
+                updateFoamDisplay();
+            });
+            
+            document.getElementById('cancelFoam').addEventListener('click', closeAllModals);
+            
+            // 点击模态框外部关闭模态框
+            [grindModal, extractModal, foamModal].forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        closeAllModals();
+                    }
+                });
+            });
+            
+            // 键盘快捷键（用于测试）
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeAllModals();
+                } else if (e.key === '1' && currentScreen === 'brewing') {
+                    startBrewingProcess('grind');
+                } else if (e.key === '2' && currentScreen === 'brewing') {
+                    startBrewingProcess('extract');
+                } else if (e.key === '3' && currentScreen === 'brewing') {
+                    startBrewingProcess('foam');
+                } else if (e.key === 'r') {
+                    resetBrewingProcess();
+                }
+            });
+        }
+        
+        // 初始化应用
+        function initApp() {
+            initDrinkSlider();
+            initEventListeners();
+            updateGrindDisplay();
+            updateExtractDisplay();
+            updateFoamDisplay();
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
