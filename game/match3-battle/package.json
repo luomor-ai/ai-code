@@ -1,0 +1,24 @@
+{
+  "name": "match3-multiplayer-game",
+  "version": "1.0.0",
+  "description": "多人实时对战消消乐游戏",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "match3",
+    "websocket",
+    "multiplayer",
+    "game"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

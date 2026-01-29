@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>多人消消乐对战</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    #root {
+      width: 100%;
+      height: 100vh;
+    }
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-size: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div class="loading">游戏加载中...</div>
+  </div>
+
+  <!-- React 和 Babel -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Lucide React Icons -->
+  <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.js"></script>
+
+  <!-- 游戏组件 -->
+  <script type="text/babel">
+    const { useState, useEffect, useCallback, useRef } = React;
+    const { 
+      Sparkles, 
+      Users, 
+      Zap, 
+      Trophy, 
+      MessageCircle, 
+      Copy, 
+      Check, 
+      Crown, 
+      Star 
+    } = lucideReact;
+
+    // 游戏配置
+    const BOARD_SIZE = 8;
+    const COLORS = ['🔴', '🟡', '🟢', '🔵', '🟣', '🟠'];
+    const EMOJIS = ['😀', '😎', '🎉', '🔥', '💪', '👍', '❤️', '🎮'];
+    const GAME_TIME = 120;
+
+    // WebSocket 连接配置
+    const WS_URL = 'ws://localhost:8080';
+
+    const Match3Game = () => {
+      // 所有状态声明
+      const [board, setBoard] = useState([]);
+      const [score, setScore] = useState(0);
+      const [selectedCell, setSelectedCell] = useState(null);
+      const [isAnimating, setIsAnimating] = useState(false);
+      const [gameState, setGameState] = useState('menu');
+      const [roomCode, setRoomCode] = useState('');
+      const [inputRoomCode, setInputRoomCode] = useState('');
+      const [playerName, setPlayerName] = useState('');
+      const [opponentName, setOpponentName] = useState('');
+      const [opponentScore, setOpponentScore] = useState(0);
+      const [timeLeft, setTimeLeft] = useState(GAME_TIME);
+      const [messages, setMessages] = useState([]);
+      const [inputMessage, setInputMessage] = useState('');
+      const [showChat, setShowChat] = useState(false);
+      const [copied, setCopied] = useState(false);
+      const [matchType, setMatchType] = useState('');
+      const [ws, setWs] = useState(null);
+      const [playerRole, setPlayerRole] = useState('');
+      const [combo, setCombo] = useState(0);
+      const chatEndRef = useRef(null);
+
+      // 复制之前创建的游戏逻辑...
+      // (为了简洁，这里省略了具体实现，实际使用时需要完整复制 match3-game.jsx 的内容)
+
+      return (
+        <div style={{
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '24px',
+            padding: '48px',
+            maxWidth: '480px',
+            textAlign: 'center'
+          }}>
+            <h1 style={{
+              fontSize: '36px',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              marginBottom: '16px'
+            }}>
+              多人消消乐对战
+            </h1>
+            <p style={{ color: '#666', marginBottom: '24px' }}>
+              请查看 README.md 了解完整功能
+            </p>
+            <div style={{
+              background: '#f8f9fa',
+              padding: '20px',
+              borderRadius: '12px',
+              textAlign: 'left'
+            }}>
+              <h3 style={{ marginBottom: '12px', color: '#333' }}>启动步骤：</h3>
+              <ol style={{ color: '#666', lineHeight: '1.8' }}>
+                <li>运行 <code>npm install</code> 安装依赖</li>
+                <li>运行 <code>npm start</code> 启动服务器</li>
+                <li>将 match3-game.jsx 导入到 React 项目</li>
+                <li>或在 Claude.ai 中作为 Artifact 运行</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // 渲染应用
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<Match3Game />);
+  </script>
+</body>
+</html>

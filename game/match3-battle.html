@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>消消乐对战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .screen {
+            display: none;
+            min-height: 100vh;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 主页面 */
+        .home-screen {
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .logo h1 {
+            font-size: 48px;
+            color: white;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .logo p {
+            color: rgba(255,255,255,0.9);
+            font-size: 16px;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .btn {
+            padding: 18px 30px;
+            border: none;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* 房间页面 */
+        .room-screen {
+            max-width: 480px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h2 {
+            font-size: 24px;
+        }
+
+        .room-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+
+        .room-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .room-code {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            letter-spacing: 4px;
+            margin: 10px 0;
+        }
+
+        .copy-btn {
+            padding: 8px 20px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #667eea;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .players-list {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 25px 0;
+        }
+
+        .player-slot {
+            flex: 1;
+            max-width: 150px;
+            padding: 20px;
+            border-radius: 16px;
+            background: #f8f9fa;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .player-slot.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .player-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: white;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .player-slot.active .player-avatar {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .waiting-text {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .start-game-btn {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .start-game-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 游戏页面 */
+        .game-screen {
+            max-width: 480px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .player-info {
+            flex: 1;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 16px;
+        }
+
+        .player-info.opponent {
+            text-align: right;
+        }
+
+        .player-name {
+            font-size: 14px;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+
+        .player-score {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .vs-badge {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #667eea;
+            margin: 0 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .game-board {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            margin-bottom: 15px;
+        }
+
+        .timer-bar {
+            background: #f0f0f0;
+            height: 8px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .timer-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            transition: width 1s linear;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+            background: #e0e0e0;
+            padding: 4px;
+            border-radius: 12px;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .cell.selected {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 3px #667eea;
+            z-index: 10;
+        }
+
+        .cell.matched {
+            animation: pop 0.3s ease;
+        }
+
+        @keyframes pop {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* 聊天系统 */
+        .chat-container {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding-right: 5px;
+        }
+
+        .chat-message {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .chat-message.own {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            background: #f0f0f0;
+            word-wrap: break-word;
+        }
+
+        .chat-message.own .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 20px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .emoji-btn, .send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #667eea;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .emoji-picker {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border-radius: 16px;
+            padding: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            display: none;
+            max-width: 320px;
+            z-index: 100;
+        }
+
+        .emoji-picker.active {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+        }
+
+        .emoji-item {
+            font-size: 28px;
+            cursor: pointer;
+            text-align: center;
+            padding: 5px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .emoji-item:active {
+            background: #f0f0f0;
+        }
+
+        /* 结果页面 */
+        .result-screen {
+            justify-content: center;
+            align-items: center;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            max-width: 350px;
+            width: 100%;
+        }
+
+        .result-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .result-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .result-scores {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 16px;
+        }
+
+        .score-item {
+            text-align: center;
+        }
+
+        .score-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 350px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .input-group {
+            margin: 20px 0;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            text-align: center;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-buttons .btn {
+            flex: 1;
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 颜色方案 */
+        .color-0 { background: #FF6B6B; } /* 红色 */
+        .color-1 { background: #4ECDC4; } /* 青色 */
+        .color-2 { background: #FFE66D; } /* 黄色 */
+        .color-3 { background: #95E1D3; } /* 薄荷绿 */
+        .color-4 { background: #A8E6CF; } /* 浅绿 */
+        .color-5 { background: #FF8B94; } /* 粉色 */
+    </style>
+</head>
+<body>
+    <!-- 主页面 -->
+    <div class="screen active" id="homeScreen">
+        <div class="logo">
+            <h1>🎮 消消乐对战</h1>
+            <p>多人实时对战，一起来玩吧！</p>
+        </div>
+        <div class="menu-buttons">
+            <button class="btn btn-primary" onclick="quickMatch()">
+                🎲 快速匹配
+            </button>
+            <button class="btn btn-primary" onclick="showCreateRoom()">
+                ➕ 创建房间
+            </button>
+            <button class="btn btn-secondary" onclick="showJoinRoom()">
+                🔍 加入房间
+            </button>
+        </div>
+    </div>
+
+    <!-- 房间页面 -->
+    <div class="screen" id="roomScreen">
+        <div class="header">
+            <button class="back-btn" onclick="leaveRoom()">←</button>
+            <h2>游戏房间</h2>
+        </div>
+        <div class="room-card">
+            <div class="room-info">
+                <p style="color: #999; font-size: 14px;">房间号</p>
+                <div class="room-code" id="roomCode">ABCD</div>
+                <button class="copy-btn" onclick="copyRoomCode()">📋 复制房间号</button>
+            </div>
+            <div class="players-list">
+                <div class="player-slot active">
+                    <div class="player-avatar">👤</div>
+                    <div class="player-name">你</div>
+                </div>
+                <div class="player-slot" id="opponentSlot">
+                    <div class="player-avatar">❓</div>
+                    <div class="waiting-text">等待玩家...</div>
+                </div>
+            </div>
+            <button class="btn btn-primary start-game-btn" id="startBtn" onclick="startGame()" disabled>
+                开始游戏
+            </button>
+        </div>
+    </div>
+
+    <!-- 游戏页面 -->
+    <div class="screen" id="gameScreen">
+        <div class="game-header">
+            <div class="player-info">
+                <div class="player-name">你</div>
+                <div class="player-score" id="myScore">0</div>
+            </div>
+            <div class="vs-badge">VS</div>
+            <div class="player-info opponent">
+                <div class="player-name">对手</div>
+                <div class="player-score" id="opponentScore">0</div>
+            </div>
+        </div>
+
+        <div class="game-board">
+            <div class="timer-bar">
+                <div class="timer-fill" id="timerFill" style="width: 100%"></div>
+            </div>
+            <div class="grid" id="gameGrid"></div>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="chat-input-area">
+                <button class="emoji-btn" onclick="toggleEmojiPicker()">😊</button>
+                <input type="text" class="chat-input" id="chatInput" placeholder="发送消息..." maxlength="100">
+                <button class="send-btn" onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+
+        <div class="emoji-picker" id="emojiPicker">
+            <div class="emoji-item" onclick="insertEmoji('😊')">😊</div>
+            <div class="emoji-item" onclick="insertEmoji('😂')">😂</div>
+            <div class="emoji-item" onclick="insertEmoji('🎉')">🎉</div>
+            <div class="emoji-item" onclick="insertEmoji('👍')">👍</div>
+            <div class="emoji-item" onclick="insertEmoji('❤️')">❤️</div>
+            <div class="emoji-item" onclick="insertEmoji('🔥')">🔥</div>
+            <div class="emoji-item" onclick="insertEmoji('💪')">💪</div>
+            <div class="emoji-item" onclick="insertEmoji('😎')">😎</div>
+            <div class="emoji-item" onclick="insertEmoji('🤔')">🤔</div>
+            <div class="emoji-item" onclick="insertEmoji('😅')">😅</div>
+            <div class="emoji-item" onclick="insertEmoji('🎮')">🎮</div>
+            <div class="emoji-item" onclick="insertEmoji('⚡')">⚡</div>
+        </div>
+    </div>
+
+    <!-- 结果页面 -->
+    <div class="screen" id="resultScreen">
+        <div class="result-card">
+            <div class="result-icon" id="resultIcon">🏆</div>
+            <div class="result-title" id="resultTitle">胜利！</div>
+            <div class="result-scores">
+                <div class="score-item">
+                    <div class="score-label">你的分数</div>
+                    <div class="score-value" id="finalMyScore">0</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">对手分数</div>
+                    <div class="score-value" id="finalOpponentScore">0</div>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="backToHome()">返回主页</button>
+            <button class="btn btn-secondary" onclick="playAgain()" style="margin-top: 10px;">再来一局</button>
+        </div>
+    </div>
+
+    <!-- 加入房间模态框 -->
+    <div class="modal" id="joinRoomModal">
+        <div class="modal-content">
+            <div class="modal-title">加入房间</div>
+            <div class="input-group">
+                <input type="text" id="roomCodeInput" placeholder="输入房间号" maxlength="4">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeJoinModal()">取消</button>
+                <button class="btn btn-primary" onclick="joinRoom()">加入</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态
+        let gameState = {
+            roomCode: '',
+            isHost: false,
+            opponentConnected: false,
+            myScore: 0,
+            opponentScore: 0,
+            gameTime: 60,
+            grid: [],
+            selectedCell: null,
+            isMyTurn: true
+        };
+
+        // WebSocket 连接 (模拟)
+        let ws = null;
+
+        // 初始化
+        function init() {
+            // 这里可以初始化WebSocket连接
+            // ws = new WebSocket('wss://your-server.com');
+        }
+
+        // 屏幕切换
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // 快速匹配
+        function quickMatch() {
+            // 模拟匹配过程
+            const roomCode = generateRoomCode();
+            gameState.roomCode = roomCode;
+            gameState.isHost = true;
+            document.getElementById('roomCode').textContent = roomCode;
+            showScreen('roomScreen');
+            
+            // 模拟找到对手
+            setTimeout(() => {
+                opponentJoined();
+            }, 2000);
+        }
+
+        // 显示创建房间
+        function showCreateRoom() {
+            const roomCode = generateRoomCode();
+            gameState.roomCode = roomCode;
+            gameState.isHost = true;
+            document.getElementById('roomCode').textContent = roomCode;
+            showScreen('roomScreen');
+        }
+
+        // 显示加入房间模态框
+        function showJoinRoom() {
+            document.getElementById('joinRoomModal').classList.add('active');
+        }
+
+        // 关闭加入房间模态框
+        function closeJoinModal() {
+            document.getElementById('joinRoomModal').classList.remove('active');
+        }
+
+        // 加入房间
+        function joinRoom() {
+            const code = document.getElementById('roomCodeInput').value.toUpperCase();
+            if (code.length === 4) {
+                gameState.roomCode = code;
+                gameState.isHost = false;
+                document.getElementById('roomCode').textContent = code;
+                closeJoinModal();
+                showScreen('roomScreen');
+                opponentJoined();
+            }
+        }
+
+        // 生成房间号
+        function generateRoomCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 4; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        // 复制房间号
+        function copyRoomCode() {
+            const code = gameState.roomCode;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('房间号已复制: ' + code);
+            });
+        }
+
+        // 对手加入
+        function opponentJoined() {
+            gameState.opponentConnected = true;
+            const opponentSlot = document.getElementById('opponentSlot');
+            opponentSlot.classList.add('active');
+            opponentSlot.innerHTML = `
+                <div class="player-avatar">👤</div>
+                <div class="player-name">对手</div>
+            `;
+            document.getElementById('startBtn').disabled = false;
+        }
+
+        // 离开房间
+        function leaveRoom() {
+            gameState = {
+                roomCode: '',
+                isHost: false,
+                opponentConnected: false,
+                myScore: 0,
+                opponentScore: 0,
+                gameTime: 60,
+                grid: [],
+                selectedCell: null,
+                isMyTurn: true
+            };
+            showScreen('homeScreen');
+        }
+
+        // 开始游戏
+        function startGame() {
+            initializeGrid();
+            showScreen('gameScreen');
+            startTimer();
+            addChatMessage('系统', '游戏开始！', false);
+        }
+
+        // 初始化游戏网格
+        function initializeGrid() {
+            const grid = document.getElementById('gameGrid');
+            grid.innerHTML = '';
+            gameState.grid = [];
+            
+            for (let i = 0; i < 8; i++) {
+                gameState.grid[i] = [];
+                for (let j = 0; j < 8; j++) {
+                    const color = Math.floor(Math.random() * 6);
+                    gameState.grid[i][j] = color;
+                    
+                    const cell = document.createElement('div');
+                    cell.className = `cell color-${color}`;
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    cell.onclick = () => selectCell(i, j);
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        // 选择方块
+        function selectCell(row, col) {
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            
+            if (!gameState.selectedCell) {
+                gameState.selectedCell = {row, col};
+                cell.classList.add('selected');
+            } else {
+                const prevRow = gameState.selectedCell.row;
+                const prevCol = gameState.selectedCell.col;
+                
+                // 检查是否相邻
+                const isAdjacent = 
+                    (Math.abs(row - prevRow) === 1 && col === prevCol) ||
+                    (Math.abs(col - prevCol) === 1 && row === prevRow);
+                
+                if (isAdjacent) {
+                    swapCells(prevRow, prevCol, row, col);
+                }
+                
+                document.querySelectorAll('.cell').forEach(c => c.classList.remove('selected'));
+                gameState.selectedCell = null;
+            }
+        }
+
+        // 交换方块
+        function swapCells(row1, col1, row2, col2) {
+            // 交换颜色
+            const temp = gameState.grid[row1][col1];
+            gameState.grid[row1][col1] = gameState.grid[row2][col2];
+            gameState.grid[row2][col2] = temp;
+            
+            updateGrid();
+            
+            setTimeout(() => {
+                const matches = findMatches();
+                if (matches.length > 0) {
+                    removeMatches(matches);
+                } else {
+                    // 如果没有匹配，交换回去
+                    const temp = gameState.grid[row1][col1];
+                    gameState.grid[row1][col1] = gameState.grid[row2][col2];
+                    gameState.grid[row2][col2] = temp;
+                    updateGrid();
+                }
+            }, 200);
+        }
+
+        // 查找匹配
+        function findMatches() {
+            const matches = [];
+            
+            // 横向检查
+            for (let i = 0; i < 8; i++) {
+                for (let j = 0; j < 6; j++) {
+                    const color = gameState.grid[i][j];
+                    if (color === gameState.grid[i][j+1] && color === gameState.grid[i][j+2]) {
+                        matches.push({row: i, col: j});
+                        matches.push({row: i, col: j+1});
+                        matches.push({row: i, col: j+2});
+                    }
+                }
+            }
+            
+            // 纵向检查
+            for (let i = 0; i < 6; i++) {
+                for (let j = 0; j < 8; j++) {
+                    const color = gameState.grid[i][j];
+                    if (color === gameState.grid[i+1][j] && color === gameState.grid[i+2][j]) {
+                        matches.push({row: i, col: j});
+                        matches.push({row: i+1, col: j});
+                        matches.push({row: i+2, col: j});
+                    }
+                }
+            }
+            
+            // 去重
+            return matches.filter((match, index, self) =>
+                index === self.findIndex(m => m.row === match.row && m.col === match.col)
+            );
+        }
+
+        // 移除匹配
+        function removeMatches(matches) {
+            matches.forEach(match => {
+                const cell = document.querySelector(`[data-row="${match.row}"][data-col="${match.col}"]`);
+                cell.classList.add('matched');
+            });
+            
+            gameState.myScore += matches.length * 10;
+            document.getElementById('myScore').textContent = gameState.myScore;
+            
+            setTimeout(() => {
+                dropCells();
+            }, 300);
+        }
+
+        // 方块下落
+        function dropCells() {
+            for (let j = 0; j < 8; j++) {
+                let emptySpaces = 0;
+                for (let i = 7; i >= 0; i--) {
+                    if (gameState.grid[i][j] === null) {
+                        emptySpaces++;
+                    } else if (emptySpaces > 0) {
+                        gameState.grid[i + emptySpaces][j] = gameState.grid[i][j];
+                        gameState.grid[i][j] = null;
+                    }
+                }
+                
+                // 填充新方块
+                for (let i = 0; i < emptySpaces; i++) {
+                    gameState.grid[i][j] = Math.floor(Math.random() * 6);
+                }
+            }
+            
+            updateGrid();
+            
+            setTimeout(() => {
+                const newMatches = findMatches();
+                if (newMatches.length > 0) {
+                    removeMatches(newMatches);
+                }
+            }, 300);
+        }
+
+        // 更新网格显示
+        function updateGrid() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+                const color = gameState.grid[row][col];
+                cell.className = `cell color-${color}`;
+            });
+        }
+
+        // 计时器
+        function startTimer() {
+            const timerFill = document.getElementById('timerFill');
+            let timeLeft = 60;
+            
+            const timer = setInterval(() => {
+                timeLeft--;
+                const percentage = (timeLeft / 60) * 100;
+                timerFill.style.width = percentage + '%';
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        // 结束游戏
+        function endGame() {
+            // 模拟对手分数
+            gameState.opponentScore = Math.floor(Math.random() * 200) + 100;
+            
+            const won = gameState.myScore > gameState.opponentScore;
+            
+            document.getElementById('resultIcon').textContent = won ? '🏆' : '😔';
+            document.getElementById('resultTitle').textContent = won ? '胜利！' : '失败';
+            document.getElementById('finalMyScore').textContent = gameState.myScore;
+            document.getElementById('finalOpponentScore').textContent = gameState.opponentScore;
+            
+            showScreen('resultScreen');
+        }
+
+        // 返回主页
+        function backToHome() {
+            gameState = {
+                roomCode: '',
+                isHost: false,
+                opponentConnected: false,
+                myScore: 0,
+                opponentScore: 0,
+                gameTime: 60,
+                grid: [],
+                selectedCell: null,
+                isMyTurn: true
+            };
+            document.getElementById('myScore').textContent = '0';
+            document.getElementById('chatMessages').innerHTML = '';
+            showScreen('homeScreen');
+        }
+
+        // 再来一局
+        function playAgain() {
+            gameState.myScore = 0;
+            gameState.opponentScore = 0;
+            document.getElementById('myScore').textContent = '0';
+            document.getElementById('opponentScore').textContent = '0';
+            initializeGrid();
+            showScreen('gameScreen');
+            startTimer();
+        }
+
+        // 聊天功能
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addChatMessage('你', message, true);
+                input.value = '';
+                
+                // 模拟对手回复
+                setTimeout(() => {
+                    const replies = ['加油！', '厉害！', '😊', '👍', '来吧！'];
+                    const reply = replies[Math.floor(Math.random() * replies.length)];
+                    addChatMessage('对手', reply, false);
+                }, 1000);
+            }
+        }
+
+        function addChatMessage(sender, message, isOwn) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${isOwn ? 'own' : ''}`;
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${sender[0]}</div>
+                <div class="message-bubble">${message}</div>
+            `;
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // 表情包功能
+        function toggleEmojiPicker() {
+            const picker = document.getElementById('emojiPicker');
+            picker.classList.toggle('active');
+        }
+
+        function insertEmoji(emoji) {
+            const input = document.getElementById('chatInput');
+            input.value += emoji;
+            input.focus();
+            toggleEmojiPicker();
+        }
+
+        // 点击其他地方关闭表情选择器
+        document.addEventListener('click', (e) => {
+            const picker = document.getElementById('emojiPicker');
+            const emojiBtn = document.querySelector('.emoji-btn');
+            if (!picker.contains(e.target) && e.target !== emojiBtn) {
+                picker.classList.remove('active');
+            }
+        });
+
+        // 回车发送消息
+        document.getElementById('chatInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // 初始化
+        init();
+    </script>
+</body>
+</html>

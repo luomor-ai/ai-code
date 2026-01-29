@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>消消乐对战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .screen {
+            display: none;
+            min-height: 100vh;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 连接状态指示器 */
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            backdrop-filter: blur(10px);
+        }
+
+        .connection-status.connected {
+            background: rgba(76, 175, 80, 0.3);
+            color: white;
+        }
+
+        .connection-status.disconnected {
+            background: rgba(244, 67, 54, 0.3);
+            color: white;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: #4CAF50;
+        }
+
+        .status-dot.disconnected {
+            background: #F44336;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* 主页面 */
+        .home-screen {
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .logo h1 {
+            font-size: 48px;
+            color: white;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .logo p {
+            color: rgba(255,255,255,0.9);
+            font-size: 16px;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .btn {
+            padding: 18px 30px;
+            border: none;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* 房间页面 */
+        .room-screen {
+            max-width: 480px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h2 {
+            font-size: 24px;
+        }
+
+        .room-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+
+        .room-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .room-code {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            letter-spacing: 4px;
+            margin: 10px 0;
+        }
+
+        .copy-btn {
+            padding: 8px 20px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #667eea;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .players-list {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 25px 0;
+        }
+
+        .player-slot {
+            flex: 1;
+            max-width: 150px;
+            padding: 20px;
+            border-radius: 16px;
+            background: #f8f9fa;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .player-slot.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .player-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: white;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .player-slot.active .player-avatar {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .waiting-text {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .start-game-btn {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        /* 游戏页面 */
+        .game-screen {
+            max-width: 480px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .player-info {
+            flex: 1;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 16px;
+        }
+
+        .player-info.opponent {
+            text-align: right;
+        }
+
+        .player-name {
+            font-size: 14px;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+
+        .player-score {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .vs-badge {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #667eea;
+            margin: 0 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .game-board {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            margin-bottom: 15px;
+        }
+
+        .timer-bar {
+            background: #f0f0f0;
+            height: 8px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .timer-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            transition: width 1s linear;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+            background: #e0e0e0;
+            padding: 4px;
+            border-radius: 12px;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .cell.selected {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 3px #667eea;
+            z-index: 10;
+        }
+
+        .cell.matched {
+            animation: pop 0.3s ease;
+        }
+
+        @keyframes pop {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); opacity: 0.5; }
+        }
+
+        /* 聊天系统 */
+        .chat-container {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding-right: 5px;
+        }
+
+        .chat-message {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .chat-message.own {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            background: #f0f0f0;
+            word-wrap: break-word;
+        }
+
+        .chat-message.own .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 20px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .emoji-btn, .send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #667eea;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .emoji-picker {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border-radius: 16px;
+            padding: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            display: none;
+            max-width: 320px;
+            z-index: 100;
+        }
+
+        .emoji-picker.active {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+        }
+
+        .emoji-item {
+            font-size: 28px;
+            cursor: pointer;
+            text-align: center;
+            padding: 5px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .emoji-item:active {
+            background: #f0f0f0;
+        }
+
+        /* 结果页面 */
+        .result-screen {
+            justify-content: center;
+            align-items: center;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            max-width: 350px;
+            width: 100%;
+        }
+
+        .result-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .result-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .result-scores {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 16px;
+        }
+
+        .score-item {
+            text-align: center;
+        }
+
+        .score-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 350px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .input-group {
+            margin: 20px 0;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            text-align: center;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-buttons .btn {
+            flex: 1;
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 颜色方案 */
+        .color-0 { background: #FF6B6B; } /* 红色 */
+        .color-1 { background: #4ECDC4; } /* 青色 */
+        .color-2 { background: #FFE66D; } /* 黄色 */
+        .color-3 { background: #95E1D3; } /* 薄荷绿 */
+        .color-4 { background: #A8E6CF; } /* 浅绿 */
+        .color-5 { background: #FF8B94; } /* 粉色 */
+
+        /* Toast 提示 */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-size: 16px;
+            z-index: 2000;
+            display: none;
+            animation: toastFade 2s ease;
+        }
+
+        @keyframes toastFade {
+            0%, 100% { opacity: 0; }
+            10%, 90% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 连接状态 -->
+    <div class="connection-status disconnected" id="connectionStatus">
+        <div class="status-dot disconnected"></div>
+        <span>连接中...</span>
+    </div>
+
+    <!-- Toast 提示 -->
+    <div class="toast" id="toast"></div>
+
+    <!-- 主页面 -->
+    <div class="screen active" id="homeScreen">
+        <div class="logo">
+            <h1>🎮 消消乐对战</h1>
+            <p>多人实时对战，一起来玩吧！</p>
+        </div>
+        <div class="menu-buttons">
+            <button class="btn btn-primary" onclick="quickMatch()">
+                🎲 快速匹配
+            </button>
+            <button class="btn btn-primary" onclick="showCreateRoom()">
+                ➕ 创建房间
+            </button>
+            <button class="btn btn-secondary" onclick="showJoinRoom()">
+                🔍 加入房间
+            </button>
+        </div>
+    </div>
+
+    <!-- 房间页面 -->
+    <div class="screen" id="roomScreen">
+        <div class="header">
+            <button class="back-btn" onclick="leaveRoom()">←</button>
+            <h2>游戏房间</h2>
+        </div>
+        <div class="room-card">
+            <div class="room-info">
+                <p style="color: #999; font-size: 14px;">房间号</p>
+                <div class="room-code" id="roomCode">----</div>
+                <button class="copy-btn" onclick="copyRoomCode()">📋 复制房间号</button>
+            </div>
+            <div class="players-list">
+                <div class="player-slot active">
+                    <div class="player-avatar">👤</div>
+                    <div class="player-name">你</div>
+                </div>
+                <div class="player-slot" id="opponentSlot">
+                    <div class="player-avatar">❓</div>
+                    <div class="waiting-text">等待玩家...</div>
+                </div>
+            </div>
+            <button class="btn btn-primary start-game-btn" id="startBtn" onclick="startGame()" disabled>
+                <span id="startBtnText">等待对手...</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 游戏页面 -->
+    <div class="screen" id="gameScreen">
+        <div class="game-header">
+            <div class="player-info">
+                <div class="player-name">你</div>
+                <div class="player-score" id="myScore">0</div>
+            </div>
+            <div class="vs-badge">VS</div>
+            <div class="player-info opponent">
+                <div class="player-name">对手</div>
+                <div class="player-score" id="opponentScore">0</div>
+            </div>
+        </div>
+
+        <div class="game-board">
+            <div class="timer-bar">
+                <div class="timer-fill" id="timerFill" style="width: 100%"></div>
+            </div>
+            <div class="grid" id="gameGrid"></div>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="chat-input-area">
+                <button class="emoji-btn" onclick="toggleEmojiPicker()">😊</button>
+                <input type="text" class="chat-input" id="chatInput" placeholder="发送消息..." maxlength="100">
+                <button class="send-btn" onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+
+        <div class="emoji-picker" id="emojiPicker">
+            <div class="emoji-item" onclick="insertEmoji('😊')">😊</div>
+            <div class="emoji-item" onclick="insertEmoji('😂')">😂</div>
+            <div class="emoji-item" onclick="insertEmoji('🎉')">🎉</div>
+            <div class="emoji-item" onclick="insertEmoji('👍')">👍</div>
+            <div class="emoji-item" onclick="insertEmoji('❤️')">❤️</div>
+            <div class="emoji-item" onclick="insertEmoji('🔥')">🔥</div>
+            <div class="emoji-item" onclick="insertEmoji('💪')">💪</div>
+            <div class="emoji-item" onclick="insertEmoji('😎')">😎</div>
+            <div class="emoji-item" onclick="insertEmoji('🤔')">🤔</div>
+            <div class="emoji-item" onclick="insertEmoji('😅')">😅</div>
+            <div class="emoji-item" onclick="insertEmoji('🎮')">🎮</div>
+            <div class="emoji-item" onclick="insertEmoji('⚡')">⚡</div>
+        </div>
+    </div>
+
+    <!-- 结果页面 -->
+    <div class="screen" id="resultScreen">
+        <div class="result-card">
+            <div class="result-icon" id="resultIcon">🏆</div>
+            <div class="result-title" id="resultTitle">胜利！</div>
+            <div class="result-scores">
+                <div class="score-item">
+                    <div class="score-label">你的分数</div>
+                    <div class="score-value" id="finalMyScore">0</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">对手分数</div>
+                    <div class="score-value" id="finalOpponentScore">0</div>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="backToHome()">返回主页</button>
+            <button class="btn btn-secondary" onclick="playAgain()" style="margin-top: 10px;">再来一局</button>
+        </div>
+    </div>
+
+    <!-- 加入房间模态框 -->
+    <div class="modal" id="joinRoomModal">
+        <div class="modal-content">
+            <div class="modal-title">加入房间</div>
+            <div class="input-group">
+                <input type="text" id="roomCodeInput" placeholder="输入房间号" maxlength="4">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeJoinModal()">取消</button>
+                <button class="btn btn-primary" onclick="joinRoom()">加入</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
