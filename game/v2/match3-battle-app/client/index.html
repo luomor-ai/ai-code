@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>消消乐对战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        .app-container {
+            max-width: 414px;
+            margin: 0 auto;
+            background: #fff;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 0 20px;
+        }
+
+        .logo {
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .connection-status {
+            text-align: center;
+            padding: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .connection-status.connected {
+            color: #28a745;
+        }
+
+        .connection-status.disconnected {
+            color: #dc3545;
+        }
+
+        .menu-buttons {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 16px;
+            padding: 20px 0;
+        }
+
+        .btn {
+            padding: 18px 24px;
+            border: none;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+        }
+
+        .btn-outline {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .room-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .top-bar-title {
+            flex: 1;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .room-code-display {
+            background: rgba(255,255,255,0.95);
+            margin: 16px;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .room-code-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .room-code {
+            font-size: 32px;
+            font-weight: 900;
+            color: #667eea;
+            letter-spacing: 4px;
+        }
+
+        .players-container {
+            padding: 16px;
+            flex: 1;
+        }
+
+        .player-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .player-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            margin-right: 12px;
+        }
+
+        .player-info {
+            flex: 1;
+        }
+
+        .player-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .player-status {
+            font-size: 14px;
+            color: #28a745;
+        }
+
+        .waiting-text {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+            font-size: 16px;
+        }
+
+        .room-actions {
+            padding: 16px;
+            background: white;
+            border-top: 1px solid #eee;
+        }
+
+        .game-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 16px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .player-score {
+            flex: 1;
+        }
+
+        .player-name-small {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+
+        .score {
+            font-size: 24px;
+            font-weight: 900;
+        }
+
+        .game-timer {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .game-board-container {
+            padding: 16px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .game-board {
+            background: white;
+            border-radius: 20px;
+            padding: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .cell.selected {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 3px #667eea;
+            z-index: 10;
+        }
+
+        .cell.matched {
+            animation: match 0.3s ease;
+        }
+
+        @keyframes match {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.5; }
+        }
+
+        .color-0 { background: #ff6b6b; }
+        .color-1 { background: #4ecdc4; }
+        .color-2 { background: #ffe66d; }
+        .color-3 { background: #95e1d3; }
+        .color-4 { background: #f38181; }
+        .color-5 { background: #aa96da; }
+
+        .chat-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            font-size: 28px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            background: white;
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 -4px 24px rgba(0,0,0,0.2);
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            z-index: 101;
+            display: flex;
+            flex-direction: column;
+            max-width: 414px;
+            margin: 0 auto;
+        }
+
+        .chat-panel.open {
+            transform: translateY(0);
+        }
+
+        .chat-header {
+            padding: 16px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .chat-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .message {
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message.own {
+            align-items: flex-end;
+        }
+
+        .message-sender {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 4px;
+        }
+
+        .message-bubble {
+            background: #f0f0f0;
+            padding: 10px 14px;
+            border-radius: 16px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+        .message.own .message-bubble {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .emoji-picker {
+            display: flex;
+            gap: 8px;
+            padding: 12px 16px;
+            border-top: 1px solid #eee;
+            overflow-x: auto;
+        }
+
+        .emoji-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .emoji-btn:active {
+            background: #f0f0f0;
+        }
+
+        .chat-input-container {
+            padding: 12px 16px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .result-container {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .result-title {
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 20px;
+        }
+
+        .result-title.win {
+            color: #28a745;
+        }
+
+        .result-title.lose {
+            color: #dc3545;
+        }
+
+        .result-scores {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .result-score-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .result-score-row:last-child {
+            border-bottom: none;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-field:focus {
+            border-color: #667eea;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 24px;
+            padding: 32px 24px;
+            max-width: 340px;
+            width: 90%;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 16px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 主菜单屏幕 -->
+        <div class="screen active" id="menuScreen">
+            <div class="header">
+                <div class="logo">💎 消消乐</div>
+                <div class="subtitle">多人实时对战</div>
+                <div class="connection-status" id="connectionStatus">连接中...</div>
+            </div>
+            <div class="menu-buttons">
+                <button class="btn btn-primary" onclick="showCreateRoom()" id="createRoomBtn">创建房间</button>
+                <button class="btn btn-secondary" onclick="showJoinRoom()" id="joinRoomBtn">加入房间</button>
+                <button class="btn btn-outline" onclick="randomMatch()" id="randomMatchBtn">随机匹配</button>
+            </div>
+        </div>
+
+        <!-- 房间屏幕 -->
+        <div class="screen" id="roomScreen">
+            <div class="top-bar">
+                <button class="back-btn" onclick="leaveRoom()">←</button>
+                <div class="top-bar-title">游戏房间</div>
+                <div style="width: 40px;"></div>
+            </div>
+            <div class="room-container">
+                <div class="room-code-display">
+                    <div class="room-code-label">房间号</div>
+                    <div class="room-code" id="roomCodeDisplay">------</div>
+                </div>
+                <div class="players-container">
+                    <div class="player-card">
+                        <div class="player-avatar">👤</div>
+                        <div class="player-info">
+                            <div class="player-name" id="player1Name">玩家1</div>
+                            <div class="player-status">已准备</div>
+                        </div>
+                    </div>
+                    <div id="player2Container">
+                        <div class="waiting-text">等待对手加入...</div>
+                    </div>
+                </div>
+                <div class="room-actions">
+                    <button class="btn btn-primary" style="width: 100%;" id="startGameBtn" onclick="startGame()" disabled>
+                        开始游戏
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 游戏屏幕 -->
+        <div class="screen" id="gameScreen">
+            <div class="game-header">
+                <div class="player-score">
+                    <div class="player-name-small" id="gamePlayer1Name">你</div>
+                    <div class="score" id="player1Score">0</div>
+                </div>
+                <div class="game-timer" id="gameTimer">60</div>
+                <div class="player-score" style="text-align: right;">
+                    <div class="player-name-small" id="gamePlayer2Name">对手</div>
+                    <div class="score" id="player2Score">0</div>
+                </div>
+            </div>
+            <div class="game-board-container">
+                <div class="game-board" id="gameBoard"></div>
+            </div>
+        </div>
+
+        <!-- 结果屏幕 -->
+        <div class="screen" id="resultScreen">
+            <div class="result-container">
+                <div class="result-title" id="resultTitle">胜利!</div>
+                <div class="result-scores">
+                    <div class="result-score-row">
+                        <span id="finalPlayer1Name">你</span>
+                        <span id="finalPlayer1Score">0</span>
+                    </div>
+                    <div class="result-score-row">
+                        <span id="finalPlayer2Name">对手</span>
+                        <span id="finalPlayer2Score">0</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary" style="width: 100%;" onclick="backToMenu()">返回主菜单</button>
+            </div>
+        </div>
+
+        <!-- 聊天按钮 -->
+        <button class="chat-toggle" id="chatToggle" onclick="toggleChat()" style="display: none;">💬</button>
+
+        <!-- 聊天面板 -->
+        <div class="chat-panel" id="chatPanel">
+            <div class="chat-header">
+                <div class="chat-title">聊天</div>
+                <button class="chat-close" onclick="toggleChat()">×</button>
+            </div>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="emoji-picker">
+                <button class="emoji-btn" onclick="sendEmoji('😀')">😀</button>
+                <button class="emoji-btn" onclick="sendEmoji('😎')">😎</button>
+                <button class="emoji-btn" onclick="sendEmoji('🎉')">🎉</button>
+                <button class="emoji-btn" onclick="sendEmoji('👍')">👍</button>
+                <button class="emoji-btn" onclick="sendEmoji('❤️')">❤️</button>
+                <button class="emoji-btn" onclick="sendEmoji('😂')">😂</button>
+                <button class="emoji-btn" onclick="sendEmoji('🔥')">🔥</button>
+            </div>
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" id="chatInput" placeholder="输入消息..." 
+                       onkeypress="if(event.key==='Enter') sendMessage()">
+                <button class="send-btn" onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+
+        <!-- 创建房间弹窗 -->
+        <div class="modal-overlay" id="createRoomModal">
+            <div class="modal">
+                <div class="modal-title">创建房间</div>
+                <div class="input-group">
+                    <label class="input-label">你的昵称</label>
+                    <input type="text" class="input-field" id="createNickname" placeholder="输入昵称" maxlength="12">
+                </div>
+                <button class="btn btn-primary" style="width: 100%; margin-bottom: 8px;" onclick="createRoom()">创建</button>
+                <button class="btn btn-outline" style="width: 100%;" onclick="closeModal('createRoomModal')">取消</button>
+            </div>
+        </div>
+
+        <!-- 加入房间弹窗 -->
+        <div class="modal-overlay" id="joinRoomModal">
+            <div class="modal">
+                <div class="modal-title">加入房间</div>
+                <div class="input-group">
+                    <label class="input-label">房间号</label>
+                    <input type="text" class="input-field" id="joinRoomCode" placeholder="输入6位房间号" maxlength="6">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">你的昵称</label>
+                    <input type="text" class="input-field" id="joinNickname" placeholder="输入昵称" maxlength="12">
+                </div>
+                <button class="btn btn-primary" style="width: 100%; margin-bottom: 8px;" onclick="joinRoom()">加入</button>
+                <button class="btn btn-outline" style="width: 100%;" onclick="closeModal('joinRoomModal')">取消</button>
+            </div>
+        </div>
+
+        <!-- 随机匹配弹窗 -->
+        <div class="modal-overlay" id="matchingModal">
+            <div class="modal">
+                <div class="modal-title">匹配中</div>
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <div>正在寻找对手...</div>
+                </div>
+                <button class="btn btn-outline" style="width: 100%;" onclick="cancelMatching()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
