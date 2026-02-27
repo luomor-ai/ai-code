@@ -1,0 +1,3 @@
+[submodule "FitnessTracker"]
+	path = FitnessTracker
+	url = git@github.com:luomor-ai/FitnessTracker.git
